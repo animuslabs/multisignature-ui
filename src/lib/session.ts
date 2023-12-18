@@ -25,6 +25,11 @@ const sessionKit = new SessionKit({
       id: networks[2]!.chainId,
       url: networks[2]!.nodeUrl,
       logo: networks[2]!.logo
+    },
+    {
+      id: networks[3]!.chainId,
+      url: networks[3]!.nodeUrl,
+      logo: networks[3]!.logo
     }
   ],
   ui: webRenderer,
