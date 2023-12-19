@@ -9,9 +9,17 @@
           <div>
             Contract Section
           </div>
-          <!-- Separate fields for account and name -->
-          <q-input type="text" v-model="selectedAction.account" label="contract name" class="q-mt-md" />
-          <q-input type="text" v-model="selectedAction.name" label="action name" class="q-mt-md" />
+          <div class="row">
+            <q-input type="text" v-model="selectedAction.account" label="contract name" class="q-mt-md" />
+            <q-btn label="Fetch Contract Details" @click="fetchContractDetails" class="q-ml-md" />
+          </div>
+          <q-select
+            v-model="selectedAction.name"
+            :options="actionNamesOptions"
+            option-value="value"
+            label="action name"
+            class="q-mt-md"
+          /><q-btn label="Populate Action Structure" @click="populateStructure" class="q-ml-md" />
         </q-card-section>
         <q-card-section>
           <div>
@@ -61,10 +69,29 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, computed, reactive } from "vue"
+import { onMounted, computed, reactive, toRaw } from "vue"
 import { createAndExecuteMultiSignProposal } from "src/lib/contracts"
 import { Name } from "@wharfkit/antelope"
 import { Types as TypesMultiSign } from "src/lib/eosio-msig-contract-telos-mainnet"
+import { useContractStore } from "src/stores/contractStore"
+const contractStore = useContractStore()
+
+const fetchContractDetails = async() => {
+  if (selectedAction.account) {
+    try {
+      await contractStore.getContractDetails(selectedAction.account)
+      console.log("Action Structures:", contractStore.actionStructures)
+    } catch (error) {
+      console.error("Error fetching contract details:", error)
+    }
+  } else {
+    console.error("Please enter a contract name")
+  }
+}
+
+const actionNamesOptions = computed(() => {
+  return contractStore.actionNamesAsStringArray.map(name => ({ label: name, value: name }))
+})
 
 const selectedAction = reactive({
   account: "",
@@ -107,6 +134,7 @@ const removeReqSignAccs = (index:number) => {
 
 const createProposal = async() => {
   try {
+    const actionName = isActionNameObject(selectedAction.name) ? selectedAction.name.value : selectedAction.name
     // Convert the data JSON string back to an object
     selectedAction.data = JSON.parse(selectedActionDataJson.value)
 
@@ -120,7 +148,7 @@ const createProposal = async() => {
     // eslint-disable-next-line new-cap
     const action = new TypesMultiSign.action({
       account: selectedAction.account,
-      name: selectedAction.name,
+      name: actionName,
       authorization: authorizationsConverted,
       data: selectedAction.data
     })
@@ -150,6 +178,79 @@ const createProposal = async() => {
 onMounted(() => {
 
 })
+interface ActionField {
+  name:string;
+  type:string; // You can make this more specific if you have a finite set of types
+}
+
+interface ActionStructure {
+  fields:ActionField[];
+}
+type ActionNameType = string | { label:string; value:string };
+
+interface SelectedAction {
+  account:string;
+  name:ActionNameType;
+  authorization:{ actor:string; permission:string }[];
+  data:Record<string, any>;
+}
+
+function isActionNameObject(name:any):name is { label:string; value:string } {
+  return name && typeof name === "object" && "value" in name
+}
+
+const populateDataJsonTemplate = (actionStructure:ActionStructure) => {
+  const template:Record<string, any> = {}
+  actionStructure.fields.forEach((field:ActionField) => {
+    // Add default values or placeholders based on the field type
+    switch (field.type) {
+      case "name":
+        template[field.name] = "namehere"
+        break
+      case "asset":
+        template[field.name] = "0.0000 SYMBOL" // Replace SYMBOL with actual symbol if known
+        break
+      case "uint32":
+        template[field.name] = 0
+        break
+      case "bool":
+        template[field.name] = false
+        break
+      // Add cases for other types as needed
+      default:
+        template[field.name] = ""
+    }
+  })
+  selectedAction.data = template // Update the reactive data object
+  selectedActionDataJson.value = JSON.stringify(template, null, 2) // Update the JSON string
+}
+const populateStructure = () => {
+  let actionName:string
+
+  if (isActionNameObject(selectedAction.name)) {
+    actionName = selectedAction.name.value
+  } else {
+    actionName = selectedAction.name // Here, it is treated as a string
+  }
+  console.log("Selected Action Name:", actionName)
+
+  if (actionName) {
+    const actionStructure = contractStore.actionStructures.find(
+      structure => structure.name === actionName
+    )
+
+    console.log("Found Action Structure:", actionStructure)
+
+    if (actionStructure) {
+      populateDataJsonTemplate(actionStructure)
+    } else {
+      console.error("Action structure not found for:", actionName)
+    }
+  } else {
+    console.error("No action selected")
+  }
+}
+
 
 </script>
 

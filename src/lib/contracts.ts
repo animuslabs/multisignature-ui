@@ -188,3 +188,32 @@ export async function createAndExecuteMultiSignProposal(
     throw error
   }
 }
+
+export async function getContractDetails(contractName:string) {
+  // Get the ABI for the contract
+  const response = await getABI(contractName)
+  if (!response.abi) {
+    throw new Error("ABI not found for the contract")
+  }
+
+  const abi = ABI.from(response.abi)
+
+  // Extract action names
+  const actionNames = abi.actions.map(action => action.name)
+
+  // Get the structure for each action
+  const actionStructures = actionNames.map(name => {
+    // The 'type' of the action corresponds to the name of the struct
+    const actionType = abi.getActionType(name)
+    if (actionType) {
+      return abi.getStruct(actionType)
+    } else {
+      return undefined
+    }
+  })
+  console.log("Action details:", { actionNames, actionStructures })
+  return {
+    actionNames,
+    actionStructures
+  }
+}
