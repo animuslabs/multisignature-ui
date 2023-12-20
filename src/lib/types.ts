@@ -100,3 +100,12 @@ export interface Signer {
   actor:string;
   permission:string;
 }
+
+export interface ActionField {
+  name:string;
+  type:string;
+}
+
+export interface ActionStructure {
+  fields:ActionField[];
+}

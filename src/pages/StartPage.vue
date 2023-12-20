@@ -47,6 +47,13 @@
             class="q-mt-md"
             style="min-height: 300px"
           />
+          <!-- Display action structure -->
+          <div>
+            Action's original structure
+          </div>
+          <div class="text-left" v-if="formattedActionStructure && formattedActionStructure !== 'No structure available'">
+            <pre>{{ formattedActionStructure }}</pre>
+          </div>
         </q-card-section>
         <q-card-section>
           <div>
@@ -69,12 +76,14 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, computed, reactive, watch } from "vue"
+import { computed, reactive, watch } from "vue"
 import { createAndExecuteMultiSignProposal } from "src/lib/contracts"
 import { Name } from "@wharfkit/antelope"
 import { Types as TypesMultiSign } from "src/lib/eosio-msig-contract-telos-mainnet"
 import { useContractStore } from "src/stores/contractStore"
 import { useSessionStore } from "src/stores/sessionStore"
+import { ActionStructure, ActionField } from "src/lib/types"
+
 const contractStore = useContractStore()
 const sessionStore = useSessionStore()
 
@@ -112,6 +121,37 @@ const selectedActionDataJson = computed({
     }
   }
 })
+const selectedActionStructure = computed(() => {
+  let actionName:string
+  if (typeof selectedAction.name === "object" && selectedAction.name !== null) {
+    actionName = (selectedAction.name as { value:string }).value
+  } else {
+    actionName = selectedAction.name as string
+  }
+  console.log("selectedAction.name:", actionName)
+
+  if (actionName) {
+    const actionStructure = contractStore.actionStructures.find(
+      structure => structure.name === actionName
+    )
+    console.log("Found structure:", actionStructure)
+    return actionStructure || null
+  }
+  return null
+})
+
+
+const formattedActionStructure = computed(() => {
+  console.log("selectedActionStructure.value:", selectedActionStructure.value)
+  if (selectedActionStructure.value) {
+    const structureString = JSON.stringify(selectedActionStructure.value, null, 2)
+    console.log("Structure String:", structureString)
+    return structureString
+  }
+  return "No structure available"
+})
+
+
 
 const addAuthorization = () => {
   selectedAction.authorization.push({ actor: "", permission: "" })
@@ -174,19 +214,6 @@ const createProposal = async() => {
   } catch (error) {
     console.error("Error creating proposal:", error)
   }
-}
-
-
-onMounted(() => {
-
-})
-interface ActionField {
-  name:string;
-  type:string; // You can make this more specific if you have a finite set of types
-}
-
-interface ActionStructure {
-  fields:ActionField[];
 }
 
 function isActionNameObject(name:any):name is { label:string; value:string } {
