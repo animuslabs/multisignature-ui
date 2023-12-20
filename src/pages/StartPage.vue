@@ -5,78 +5,128 @@
         <div class="text-h6">
           Create a Multi Signature Proposal
         </div>
-        <q-card-section>
-          <div>
-            Contract Section
+        <q-separator class="q-mt-md q-mb-md" color="primary" />
+        <q-splitter v-model="actionSplitterModel">
+          <template #before>
+            <!-- Contract Section -->
+            <q-card-section>
+              <div>Contract Section</div>
+              <q-input type="text" v-model="selectedAction.account" label="contract name" class="flex-grow q-mb-md" />
+              <q-btn color="primary" dense @click="fetchContractDetails" class="q-ml-md custom-button-size">
+                Fetch Contract
+                <template v-if="dataFetched">
+                  <q-icon name="thumb_up" class="q-ml-sm text-green" />
+                </template>
+              </q-btn>
+            </q-card-section>
+          </template>
+
+          <template #after>
+            <!-- Actions Section -->
+            <q-card-section>
+              <q-select
+                v-model="selectedAction.name"
+                :options="actionNamesOptions"
+                :disable="!dataFetched"
+                option-value="value"
+                label="action name"
+                class="q-mt-md q-mb-lg"
+              />
+
+              <q-btn label="Fill Action's Struct" color="primary" @click="populateStructure" class="q-ml-md" />
+              <div v-if="dataFetched" class="text-positive q-mt-sm">
+                Actions available
+              </div>
+            </q-card-section>
+          </template>
+        </q-splitter>
+      </q-card-section>
+      <q-separator class="q-mt-md q-mb-md" color="primary" />
+      <q-card-section>
+        <div>
+          Authorization Section
+        </div>
+        <!-- Dynamic authorization fields -->
+        <div class="q-mt-md">
+          <div v-for="(auth, index) in selectedAction.authorization" :key="index" class="row q-mb-md">
+            <q-input v-model="auth.actor" label="Actor" class="col" />
+            <q-input v-model="auth.permission" label="Permission" class="col" />
+            <q-btn icon="delete" color="negative" @click="removeAuthorization(index)" />
           </div>
-          <div class="row">
-            <q-input type="text" v-model="selectedAction.account" label="contract name" class="q-mt-md" />
-            <q-btn label="Fetch Contract Details" @click="fetchContractDetails" class="q-ml-md" />
-          </div>
-          <q-select
-            v-model="selectedAction.name"
-            :options="actionNamesOptions"
-            option-value="value"
-            label="action name"
-            class="q-mt-md"
-          /><q-btn label="Populate Action Structure" @click="populateStructure" class="q-ml-md" />
-        </q-card-section>
-        <q-card-section>
-          <div>
-            Authorization Section
-          </div>
-          <!-- Dynamic authorization fields -->
-          <div class="q-mt-md">
-            <div v-for="(auth, index) in selectedAction.authorization" :key="index" class="row q-mb-md">
-              <q-input v-model="auth.actor" label="Actor" class="col" />
-              <q-input v-model="auth.permission" label="Permission" class="col" />
-              <q-btn icon="delete" color="negative" @click="removeAuthorization(index)" />
+          <q-btn icon="add" color="primary" label="Add Authorization" @click="addAuthorization" />
+        </div>
+      </q-card-section>
+      <q-separator class="q-mt-md q-mb-md" color="primary" />
+      <q-card-section>
+        <div>Data Section</div>
+        <div inline class="q-mb-md">
+          <q-radio v-model="currentView" label="JSON" val="before" />
+          <q-radio v-model="currentView" label="BOTH" val="both" />
+          <q-radio v-model="currentView" label="STRUCT" val="after" />
+        </div>
+
+        <q-splitter v-if="currentView === 'both'" v-model="splitterModel">
+          <template #before>
+            <!-- Text area for data as JSON -->
+            <div>Data (JSON)</div>
+            <q-input
+              type="textarea"
+              v-model="selectedActionDataJson"
+              class="q-mt-md"
+              style="min-height: 300px"
+            />
+          </template>
+          <template #after>
+            <!-- Display action structure -->
+            <div>Action's original structure</div>
+            <div class="text-left" v-if="formattedActionStructure && formattedActionStructure !== 'No structure available'">
+              <pre>{{ formattedActionStructure }}</pre>
             </div>
-            <q-btn icon="add" label="Add Authorization" @click="addAuthorization" />
+          </template>
+        </q-splitter>
+
+        <div v-else>
+          <div v-if="currentView === 'before'">
+            Data (JSON)
           </div>
-        </q-card-section>
-        <q-card-section>
-          <div>
-            Data Section in JSON Format
+          <div v-if="currentView === 'after'">
+            Action's original structure
           </div>
-          <!-- Text area for data as JSON -->
           <q-input
+            v-if="currentView === 'before'"
             type="textarea"
             v-model="selectedActionDataJson"
-            label="Data (JSON)"
             class="q-mt-md"
             style="min-height: 300px"
           />
-          <!-- Display action structure -->
-          <div>
-            Action's original structure
+          <div v-if="currentView === 'after'" class="text-left">
+            <pre v-if="formattedActionStructure && formattedActionStructure !== 'No structure available'">{{ formattedActionStructure }}</pre>
           </div>
-          <div class="text-left" v-if="formattedActionStructure && formattedActionStructure !== 'No structure available'">
-            <pre>{{ formattedActionStructure }}</pre>
-          </div>
-        </q-card-section>
-        <q-card-section>
-          <div>
-            Required Signers Section
-          </div>
-
-          <div v-for="(item, index) in reqSignAccs" :key="index" class="row q-mb-md">
-            <q-input v-model="item.actor" label="Actor" class="col" />
-            <q-input v-model="item.permission" label="Permission" class="col" />
-            <q-btn icon="delete" color="negative" @click="removeReqSignAccs(index)" />
-          </div>
-          <q-btn icon="add" label="Add Actor/Permission" @click="addReqSignAccs" />
-        </q-card-section>
-        <q-card-actions align="right">
-          <q-btn flat label="Create" color="green" @click="createProposal" />
-        </q-card-actions>
+        </div>
       </q-card-section>
+      <q-separator class="q-mt-md q-mb-md" color="primary" />
+      <q-card-section>
+        <div>
+          Required Signers Section
+        </div>
+
+        <div v-for="(item, index) in reqSignAccs" :key="index" class="row q-mb-md">
+          <q-input v-model="item.actor" label="Actor" class="col" />
+          <q-input v-model="item.permission" label="Permission" class="col" />
+          <q-btn icon="delete" color="negative" @click="removeReqSignAccs(index)" />
+        </div>
+        <q-btn icon="add" color="primary" label="Add Actor/Permission" @click="addReqSignAccs" />
+      </q-card-section>
+      <q-separator class="q-mt-md q-mb-md" color="primary" />
+      <q-card-actions align="right">
+        <q-btn label="Create" color="green" @click="createProposal" />
+      </q-card-actions>
     </q-card>
   </q-page>
 </template>
 
 <script lang="ts" setup>
-import { computed, reactive, watch } from "vue"
+import { computed, reactive, watch, ref } from "vue"
 import { createAndExecuteMultiSignProposal } from "src/lib/contracts"
 import { Name } from "@wharfkit/antelope"
 import { Types as TypesMultiSign } from "src/lib/eosio-msig-contract-telos-mainnet"
@@ -87,16 +137,25 @@ import { ActionStructure, ActionField } from "src/lib/types"
 const contractStore = useContractStore()
 const sessionStore = useSessionStore()
 
+const currentView = ref("before")
+const splitterModel = ref(50)
+const actionSplitterModel = ref(50)
+
+const dataFetched = ref(false)
+
 const fetchContractDetails = async() => {
   if (selectedAction.account) {
     try {
       await contractStore.getContractDetails(selectedAction.account)
+      dataFetched.value = true
       console.log("Action Structures:", contractStore.actionStructures)
     } catch (error) {
       console.error("Error fetching contract details:", error)
+      dataFetched.value = false
     }
   } else {
     console.error("Please enter a contract name")
+    dataFetched.value = false
   }
 }
 
@@ -281,5 +340,17 @@ watch(() => sessionStore.chainUrl, () => {
 .q-card {
   width: 600px;
   max-width: 90%;
+}
+.show-only-before .q-splitter__after {
+  display: none;
+}
+
+.show-only-after .q-splitter__before {
+  display: none;
+}
+
+.custom-button-size {
+  height: 40px;
+  width: 180px;
 }
 </style>
