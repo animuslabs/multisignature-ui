@@ -69,12 +69,14 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, computed, reactive, toRaw } from "vue"
+import { onMounted, computed, reactive, watch } from "vue"
 import { createAndExecuteMultiSignProposal } from "src/lib/contracts"
 import { Name } from "@wharfkit/antelope"
 import { Types as TypesMultiSign } from "src/lib/eosio-msig-contract-telos-mainnet"
 import { useContractStore } from "src/stores/contractStore"
+import { useSessionStore } from "src/stores/sessionStore"
 const contractStore = useContractStore()
+const sessionStore = useSessionStore()
 
 const fetchContractDetails = async() => {
   if (selectedAction.account) {
@@ -186,14 +188,6 @@ interface ActionField {
 interface ActionStructure {
   fields:ActionField[];
 }
-type ActionNameType = string | { label:string; value:string };
-
-interface SelectedAction {
-  account:string;
-  name:ActionNameType;
-  authorization:{ actor:string; permission:string }[];
-  data:Record<string, any>;
-}
 
 function isActionNameObject(name:any):name is { label:string; value:string } {
   return name && typeof name === "object" && "value" in name
@@ -251,7 +245,9 @@ const populateStructure = () => {
   }
 }
 
-
+watch(() => sessionStore.chainUrl, () => {
+  contractStore.updateApiClient()
+})
 </script>
 
 <style scoped>

@@ -1,16 +1,19 @@
 import { defineStore } from "pinia"
 import { getContractDetails } from "src/lib/contracts"
 import { APIClient, APIClientOptions, Name, NameType } from "@wharfkit/antelope"
+import { useSessionStore } from "src/stores/sessionStore"
 
 interface ActionDetails {
   actionNames:NameType[];
   actionStructures:any[]; // Replace 'any' with a more specific type if possible
+  clientAPI:APIClient | null;
 }
 
 export const useContractStore = defineStore("useContractStore", {
   state: ():ActionDetails => ({
     actionNames: [],
-    actionStructures: []
+    actionStructures: [],
+    clientAPI: null as APIClient | null
   }),
   getters: {
     // Getter to get action names as string array
@@ -26,6 +29,18 @@ export const useContractStore = defineStore("useContractStore", {
     }
   },
   actions: {
+    initializeApiClient() {
+      const sessionStore = useSessionStore()
+      const url = sessionStore.chainUrl
+
+      const apiClientOptions:APIClientOptions = { url }
+      this.clientAPI = new APIClient(apiClientOptions)
+    },
+
+    updateApiClient() {
+      // Call this method when the session data changes
+      this.initializeApiClient()
+    },
     setActionDetails(actionNames:NameType[], actionStructures:any[]) {
       this.actionNames = actionNames
       this.actionStructures = actionStructures

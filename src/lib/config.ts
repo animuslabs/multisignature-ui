@@ -18,7 +18,8 @@ export const endpoints:string[][] = [
   ["Nefty blocks Telos Testnet Assets", "https://telos-test.neftyblocks.com/assets/"], // 8
   ["Nefty blocks Telos Testnet Templates", "https://telos-test.neftyblocks.com/templates/"], // 9
   ["Nefty blocks Telos Assets", "https://telos.neftyblocks.com/assets/"], // 10
-  ["Nefty blocks Telos Templates", "https://telos.neftyblocks.com/templates/"] // 11
+  ["Nefty blocks Telos Templates", "https://telos.neftyblocks.com/templates/"], // 11
+  ["WAX Endpoint", "https://api.wax.alohaeos.com"] // 12
 ]
 export const networks:NetworkConfig[] = [
   // default network should be first!!!

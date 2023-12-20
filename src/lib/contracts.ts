@@ -1,15 +1,17 @@
-import { ContractKit, Contract } from "@wharfkit/contract"
-import { APIClient, APIClientOptions, Name } from "@wharfkit/antelope"
+import { ContractKit } from "@wharfkit/contract"
+import { APIClient, Name } from "@wharfkit/antelope"
 import { useSessionStore } from "src/stores/sessionStore"
 import { ActionNameParams, Contract as BoidContract, TableNames, RowType, ActionNames, abi as boidABI } from "src/lib/boid-contract-structure"
 import { Contract as EosioMsigContract, Types as TypesMultiSign } from "src/lib/eosio-msig-contract-telos-mainnet"
-import { Action, TransactResult, ABI, TimePointSec } from "@wharfkit/session"
+import { TransactResult, ABI, TimePointSec } from "@wharfkit/session"
 import { useSignersStore } from "src/stores/useSignersStore"
 import { generateRandomName, expDate, serializeActionData } from "src/lib/reuseFunctions"
+import { useContractStore } from "src/stores/contractStore"
 
+const contractStore = useContractStore()
 const sessionStore = useSessionStore()
-
 const signersStore = useSignersStore()
+
 const reqSignAccsConverted = signersStore.signers.map((signer) =>
 // eslint-disable-next-line new-cap
   new TypesMultiSign.permission_level({
@@ -18,20 +20,27 @@ const reqSignAccsConverted = signersStore.signers.map((signer) =>
   })
 )
 
-// this gets the chain API URL from the active session from the sessionStore
-const url = sessionStore.chainUrl
-const apiClientOptions:APIClientOptions = { url }
-console.log("chain API URL:", apiClientOptions.url)
-const clientAPI = new APIClient(apiClientOptions)
+contractStore.updateApiClient()
+
+const clientAPI = contractStore.clientAPI as APIClient
+if (!clientAPI) {
+  throw new Error("API client is not initialized")
+}
+
 const contractKit = new ContractKit({
   client: clientAPI
 })
 
 // gets the ABI for a given account
 const getABI = async(accountName:string) => {
-  const abi = await clientAPI.v1.chain.get_abi(accountName)
+  if (!contractStore.clientAPI) {
+    throw new Error("API client is not initialized")
+  }
+
+  const abi = await contractStore.clientAPI.v1.chain.get_abi(accountName)
   return abi
 }
+
 
 // custom ABI for wt.boid::transfer
 const wtboidTransferabi = ABI.from({
