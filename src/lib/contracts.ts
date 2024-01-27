@@ -135,12 +135,6 @@ export async function createAndExecuteMultiSignProposal(
     const serializedActions = await Promise.all(actions.map(async action => {
       let abi
       switch (Name.from(action.account).toString()) {
-        case "wt.boid":
-          abi = wtboidTransferabi
-          break
-        case "boid":
-          abi = boidABI
-          break
         // Add cases for other accounts and their ABIs
         default: {
           // Fetch ABI dynamically for accounts not pre-configured

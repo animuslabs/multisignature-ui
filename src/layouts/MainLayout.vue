@@ -11,6 +11,12 @@
           </q-btn>
         </q-toolbar-title>
         <div class="q-gutter-md">
+          <q-btn
+            @click="$router.push('/contract')"
+            flat
+          >
+            Contract
+          </q-btn>
           <!-- Dropdown Button for LoginMenu -->
           <q-btn-dropdown icon="person" color="primary">
             <LoginMenu />
