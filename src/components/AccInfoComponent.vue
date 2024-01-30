@@ -26,8 +26,15 @@
             </q-td>
             <q-td key="accounts" :props="props">
               <div v-for="(account, accountIndex) in props.row.accounts" :key="`account-${accountIndex}`">
-                <q-btn flat @click="emitAccount(account.permission.actor)">
-                  {{ account.permission.actor }}@{{ account.permission.permission }} | Wg:{{ account.weight }}
+                <q-btn flat @click="emitAccount(account.permission.actor)" class="lower-case">
+                  {{ account.permission.actor }}@{{ account.permission.permission }}
+                </q-btn>
+              </div>
+            </q-td>
+            <q-td key="weight" :props="props">
+              <div v-for="(account, accountIndex) in props.row.accounts" :key="`account-${accountIndex}`">
+                <q-btn flat disable>
+                  {{ account.weight }}
                 </q-btn>
               </div>
             </q-td>
@@ -57,7 +64,8 @@ const columns = computed(():QTableProps["columns"] => {
   const cols:QTableProps["columns"] = [
     { name: "permName", label: "Perm Name", field: "permName", align: "left" },
     { name: "threshold", label: "Threshold", field: "threshold", align: "left" },
-    { name: "accounts", label: "Accounts", field: "accounts", align: "left" }
+    { name: "accounts", label: "Accounts", field: "accounts", align: "left" },
+    { name: "weight", label: "Weight", field: "weight", align: "left" }
   ]
 
   if (showKeys.value) {
@@ -85,5 +93,9 @@ const formattedPermissions = computed(() => {
   background-color: rgb(211, 211, 211); /* Add a gray background color */
   color: rgb(5, 172, 5); /* Change the text color to green */
   padding: 10px; /* Optional: Add padding for spacing */
+}
+
+.lower-case {
+  text-transform: lowercase; /* Transform the text to lowercase */
 }
 </style>
