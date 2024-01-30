@@ -1,3 +1,5 @@
+import { API, Name } from "@wharfkit/session"
+
 export class ParsedAccountMeta {
   text:{
     tagline:string
@@ -108,4 +110,9 @@ export interface ActionField {
 
 export interface ActionStructure {
   fields:ActionField[];
+}
+
+export interface SimpleAccountObject {
+  account_name:string;
+  permissions:API.v1.AccountPermission[];
 }

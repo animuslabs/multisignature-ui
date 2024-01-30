@@ -41,6 +41,15 @@ const getABI = async(accountName:string) => {
   return abi
 }
 
+export const getAccInfo = async(accountName:string) => {
+  if (!contractStore.clientAPI) {
+    throw new Error("API client is not initialized")
+  }
+
+  const accInfo = await contractStore.clientAPI.v1.chain.get_account(accountName)
+  console.log("Account info:", accInfo)
+  return accInfo
+}
 
 // custom ABI for wt.boid::transfer
 const wtboidTransferabi = ABI.from({

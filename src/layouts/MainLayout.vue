@@ -7,10 +7,16 @@
             @click="$router.push('/')"
             flat
           >
-            Multi Sign APP
+            Antelope M-Sign
           </q-btn>
         </q-toolbar-title>
         <div class="q-gutter-md">
+          <q-btn
+            @click="$router.push('/accmap')"
+            flat
+          >
+            Acc Map
+          </q-btn>
           <q-btn
             @click="$router.push('/contract')"
             flat
