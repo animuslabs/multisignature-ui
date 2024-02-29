@@ -4,6 +4,7 @@ import { APIClient, APIClientOptions, Name, NameType } from "@wharfkit/antelope"
 import { useSessionStore } from "src/stores/sessionStore"
 
 interface ActionDetails {
+  targetContract:string,
   actionNames:NameType[];
   actionStructures:any[]; // Replace 'any' with a more specific type if possible
   clientAPI:APIClient | null;
@@ -11,6 +12,7 @@ interface ActionDetails {
 
 export const useContractStore = defineStore("useContractStore", {
   state: ():ActionDetails => ({
+    targetContract: "",
     actionNames: [],
     actionStructures: [],
     clientAPI: null as APIClient | null
@@ -47,10 +49,12 @@ export const useContractStore = defineStore("useContractStore", {
     },
     async getContractDetails(contractName:string) {
       try {
+        this.targetContract = contractName
         const { actionNames, actionStructures } = await getContractDetails(contractName)
         this.setActionDetails(actionNames, actionStructures)
       } catch (error) {
         console.error("Error in getContractDetails:", error)
+        this.targetContract = ""
         throw error // Re-throw the error to handle it in the component
       }
     }

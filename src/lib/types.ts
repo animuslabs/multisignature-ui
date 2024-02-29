@@ -116,3 +116,10 @@ export interface SimpleAccountObject {
   account_name:string;
   permissions:API.v1.AccountPermission[];
 }
+
+export interface BlankAction {
+  name:string;
+  account:string;
+  data:Record<string, string|number|object>;
+  authorization:{ actor:string; permission:string }[];
+}

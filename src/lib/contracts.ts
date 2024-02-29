@@ -3,7 +3,7 @@ import { APIClient, Name } from "@wharfkit/antelope"
 import { useSessionStore } from "src/stores/sessionStore"
 import { ActionNameParams, Contract as BoidContract, TableNames, RowType, ActionNames, abi as boidABI } from "src/lib/boid-contract-structure"
 import { Contract as EosioMsigContract, Types as TypesMultiSign } from "src/lib/eosio-msig-contract-telos-mainnet"
-import { TransactResult, ABI, TimePointSec } from "@wharfkit/session"
+import { TransactResult, ABI, TimePointSec, NameType } from "@wharfkit/session"
 import { useSignersStore } from "src/stores/useSignersStore"
 import { generateRandomName, expDate, serializeActionData } from "src/lib/reuseFunctions"
 import { useContractStore } from "src/stores/contractStore"
@@ -11,7 +11,7 @@ import { useContractStore } from "src/stores/contractStore"
 const contractStore = useContractStore()
 const sessionStore = useSessionStore()
 const signersStore = useSignersStore()
-
+interface MsigResult {result:TransactResult, propName:NameType}
 const reqSignAccsConverted = signersStore.signers.map((signer) =>
 // eslint-disable-next-line new-cap
   new TypesMultiSign.permission_level({
@@ -99,7 +99,7 @@ export async function fetchDataFromTable<T extends TableNames>(tableName:T):Prom
 export async function createAction<A extends ActionNames>(
   actionName:A,
   action_data:ActionNameParams[A]
-):Promise<TransactResult | undefined> {
+) {
   console.log("createAction called with", { actionName, action_data })
   let isItMultiSignMode = sessionStore.multiSignState
   try {
@@ -126,7 +126,7 @@ export async function createAction<A extends ActionNames>(
 
 
     console.log("Transaction result:", result)
-    return result
+    return { result }
   } catch (error) {
     console.error("Error in createAction:", error)
     throw error
@@ -136,7 +136,7 @@ export async function createAction<A extends ActionNames>(
 export async function createAndExecuteMultiSignProposal(
   reqSignAccs:TypesMultiSign.permission_level[],
   actions:TypesMultiSign.action[]
-):Promise<TransactResult | undefined> {
+):Promise<MsigResult | undefined> {
   try {
     console.log("Creating proposal with data:", actions)
 
@@ -194,7 +194,7 @@ export async function createAndExecuteMultiSignProposal(
     const result = await session.transact({ action })
     console.log("Transaction result:", result)
 
-    return result
+    return { result, propName }
   } catch (error) {
     console.error("Error in createAndExecuteProposal:", error)
     throw error

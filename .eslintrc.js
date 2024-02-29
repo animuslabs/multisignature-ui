@@ -38,6 +38,8 @@ module.exports = {
 
   // add your custom rules here
   rules: {
+    "@typescript-eslint/no-implicit-any-catch": "off",
+    "@typescript-eslint/no-explicit-any": "off",
     "no-use-before-define": "off",
     "vue/max-attributes-per-line": "off",
     "no-multiple-empty-lines": "off",
