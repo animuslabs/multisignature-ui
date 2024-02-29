@@ -52,7 +52,7 @@ import { ActionStructure, ActionField, BlankAction } from "src/lib/types"
 import { Action } from "@wharfkit/session"
 import MsigActionForm from "src/components/MsigActionForm.vue"
 import { toObject } from "src/lib/util"
-import { Dialog } from "quasar"
+import { Dialog, LocalStorage } from "quasar"
 
 const contractStore = useContractStore()
 const sessionStore = useSessionStore()
@@ -69,10 +69,17 @@ const blankAction:BlankAction = {
 }
 
 const dataFetched = ref(false)
-
+const reqSignAccs = reactive([
+  { actor: "", permission: "active" },
+  { actor: "", permission: "active" }
+])
 onMounted(() => {
   addNewAction()
   console.log(sessionStore.whatChain)
+  const exists = LocalStorage.getItem("reqSigners")
+  if (exists) {
+    reqSignAccs.splice(0, 100, ...exists as Array<any>)
+  }
 })
 const refreshForm = ref(true)
 
@@ -95,14 +102,12 @@ function clearAction(index:number) {
   void nextTick(() => refreshForm.value = true)
 }
 
-const reqSignAccs = reactive([
-  { actor: "", permission: "active" },
-  { actor: "", permission: "active" }
-])
+
 function resetReqAuth() {
   reqSignAccs.splice(0, 9999)
   addReqSignAccs()
   addReqSignAccs()
+  LocalStorage.remove("reqSigners")
 }
 
 const addReqSignAccs = () => {
@@ -115,7 +120,7 @@ const removeReqSignAccs = (index:number) => {
 
 const createProposal = async() => {
   console.log(JSON.parse(JSON.stringify(selectedActions)))
-
+  LocalStorage.set("reqSigners", reqSignAccs)
   try {
     const actions = selectedActions.map(selectedAction => {
       const actionName = selectedAction.name
