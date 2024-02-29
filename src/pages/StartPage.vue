@@ -173,6 +173,8 @@ const createProposal = async() => {
 function proposalDialogText(name:string) {
   if (sessionStore.whatChain === "telos") return `<a style="font-size:25px;" href="https://explorer.telos.net/proposal/${name}">Proposal Link</a>`
   if (sessionStore.whatChain === "telostestnet") return `<a style="font-size:25px;" href="https://explorer-test.telos.net/proposal/${name}">Proposal Link</a>`
+  if (sessionStore.whatChain === "eos") return `<a style="font-size:25px;" href="https://bloks.io/msig/${sessionStore.authorization.actor.toString()}/${name}">Proposal Link</a>`
+  else return ""
 }
 
 const disableCreate = computed(() => {

@@ -129,7 +129,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, reactive, watch, ref, watchEffect } from "vue"
+import { computed, reactive, watch, ref, watchEffect, onMounted } from "vue"
 import { createAndExecuteMultiSignProposal } from "src/lib/contracts"
 import { Name } from "@wharfkit/antelope"
 import { Types as TypesMultiSign } from "src/lib/eosio-msig-contract-telos-mainnet"
@@ -147,6 +147,11 @@ const splitterModel = ref(50)
 const actionSplitterModel = ref(50)
 
 const dataFetched = ref(false)
+
+
+onMounted(async() => {
+  await fetchContractDetails()
+})
 
 const fetchContractDetails = async() => {
   if (selectedAction.account) {
