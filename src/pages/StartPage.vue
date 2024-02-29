@@ -78,7 +78,7 @@ const refreshForm = ref(true)
 const selectedActions:BlankAction[] = reactive([])
 
 function addNewAction(action?:BlankAction) {
-  if (action) selectedActions.push(action)
+  if (action) selectedActions.push(reactive(toObject(action)))
   else {
     selectedActions.push(reactive(toObject(blankAction)))
   }
