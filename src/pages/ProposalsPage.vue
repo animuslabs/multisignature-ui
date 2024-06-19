@@ -88,13 +88,15 @@
         </q-table>
       </q-card>
       <q-card>
-        <div class="q-ma-md q-pt-sm">
+        <div class="q-ma-md q-pt-sm q-pb-md">
           <div v-if="selectedProposalDetails">
             <div><strong>Proposal Name:</strong> {{ selectedProposalDetails.proposal_name }}</div>
             <div><strong>Earliest Execution Time:</strong> {{ selectedProposalDetails.earliest_exec_time }}</div>
             <div>
               <strong>Transaction Details:</strong>
-              <pre>{{ selectedProposalDetails.packed_transaction }}</pre>
+              <div class="transaction-details-container">
+                <pre>{{ selectedProposalDetails.packed_transaction }}</pre>
+              </div>
             </div>
           </div>
           <div v-else>
@@ -353,7 +355,9 @@ watch([() => sessionStore.whatChain, () => sessionStore.chainUrl], () => {
   flex-direction: row inline;
   align-items: top;
   justify-content: center;
-  height: 100%;
+  height: 100vh;
+  overflow-y: auto;
+  max-height: fit-content;
   max-width: 100%;
   margin-left: auto;
   margin-right: auto;
@@ -363,9 +367,14 @@ watch([() => sessionStore.whatChain, () => sessionStore.chainUrl], () => {
   width: 100%;
   max-width: 600px;
   height: 100%;
-  max-height: 600px;
+  max-height: 100%;
   margin: auto;
   position: absolute;
+}
+.transaction-details-container {
+  max-height: 100%;
+  overflow-y: auto;
+  background-color: #f9f9f9;
 }
 
 .top-btn {
