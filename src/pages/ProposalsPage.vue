@@ -16,6 +16,7 @@
           wrap-cells
           class="q-ma-xs"
           row-key="proposal_name"
+          @row-click="handleRowClick"
         >
           <template #body-cell-approvals="props">
             <q-td style="width: 45%;" :props="props">
@@ -88,7 +89,17 @@
       </q-card>
       <q-card>
         <div class="q-ma-md q-pt-sm">
-          this will show details of chosen proposal - coming soon
+          <div v-if="selectedProposalDetails">
+            <div><strong>Proposal Name:</strong> {{ selectedProposalDetails.proposal_name }}</div>
+            <div><strong>Earliest Execution Time:</strong> {{ selectedProposalDetails.earliest_exec_time }}</div>
+            <div>
+              <strong>Transaction Details:</strong>
+              <pre>{{ selectedProposalDetails.packed_transaction }}</pre>
+            </div>
+          </div>
+          <div v-else>
+            Select a proposal to view details or no proposals available.
+          </div>
         </div>
       </q-card>
     </div>
@@ -106,7 +117,7 @@ import { formatTime, bytesToJson } from "src/lib/reuseFunctions"
 import { useSessionStore } from "src/stores/sessionStore"
 import { useContractStore } from "src/stores/contractStore"
 import { toObject } from "src/lib/util"
-import { Bytes, Name, ABI, Serializer } from "@wharfkit/antelope"
+import { Bytes, Name, ABI, Transaction, PackedTransaction } from "@wharfkit/antelope"
 
 type Approval = {
   level:{
@@ -119,17 +130,19 @@ type Approval = {
 
 type TransformedProposal = {
   proposal_name:string;
-  requested_approvals:Approval[]; // Now including the `provided` field
-  provided_approvals:Approval[]; // Now including the `provided` field
+  requested_approvals:Approval[];
+  provided_approvals:Approval[];
   approvals:Approval[];
   hasMismatch:boolean;
 };
 
-//  type TransformedProposalDetails = {
-//           proposal_name!:Name
-//           packed_transaction!:Bytes
-//           earliest_exec_time?:TimePoint
-//  }
+type PackedTransactionData = Transaction | { error:string };
+
+type ProposalDetails = {
+  proposal_name:string;
+  packed_transaction:PackedTransactionData;
+  earliest_exec_time:string;
+};
 
 const sessionStore = useSessionStore()
 const contractStore = useContractStore()
@@ -142,6 +155,8 @@ const proposalsData:Ref<TypesMultiSign.approvals_info[]> = ref([])
 const transformedProposalsData:Ref<TransformedProposal[]> = ref([])
 const proposalsDetails:Ref<TypesMultiSign.proposal[]> = ref([])
 const proposalAcc = ref("")
+const proposalsTransactionDetails = ref({} as ProposalDetails[])
+const selectedProposalDetails = ref<ProposalDetails | null>(null)
 
 const searchProposals = async() => {
   try {
@@ -155,32 +170,31 @@ const searchProposals = async() => {
     proposalsDetails.value = proposalsDetailsData || []
 
     // Transform the proposal details data
-    // const transformDetailsData = proposalsDetailsData.map(item => {
-    //   let decodedTransaction
-    //   try {
-    //     const bytes = Bytes.from(item.packed_transaction.array, "hex")
-    //     decodedTransaction = Serializer.decode({
-    //       type: Bytes,
-    //       data: bytes,
-    //       abi: boidABI
-    //     })
-    //   } catch (error) {
-    //     console.error("Error decoding transaction for proposal:", item.proposal_name.toString(), error)
-    //     decodedTransaction = "Decoding error"
-    //   }
+    const transformedDetailsData = proposalsDetailsData.map(item => {
+      let decodedTransaction
+      try {
+        const packedData = PackedTransaction.from({ packed_trx: item.packed_transaction })
+        decodedTransaction = packedData.getTransaction() // This should decode the transaction
+        // Keep decodedTransaction as an object
+      } catch (error) {
+        console.error("Error decoding transaction for proposal:", item.proposal_name.toString(), error)
+        decodedTransaction = { error: "Decoding error" } // Use an object for error handling
+      }
 
-    //   return {
-    //     proposal_name: item.proposal_name.toString(),
-    //     packed_transaction: decodedTransaction,
-    //     earliest_exec_time: item.earliest_exec_time ? formatTime(item.earliest_exec_time.toString()) : "N/A"
-    //   }
-    // })
+      return {
+        proposal_name: item.proposal_name.toString(),
+        packed_transaction: decodedTransaction, // This is now an object
+        earliest_exec_time: item.earliest_exec_time ? formatTime(item.earliest_exec_time.toString()) : "N/A"
+      }
+    })
 
-    // console.log("Transformed details:", transformDetailsData)
+    console.log("Transformed details:", transformedDetailsData)
+    proposalsTransactionDetails.value = transformedDetailsData // Store all transformed details in the reactive variable
   } catch (error) {
     console.error("Error in searchProposals:", error)
   }
 }
+
 
 const columns:{ name:string; label:string; field:string | ((row:TransformedProposal) =>any); required?:boolean; align?:"left" | "right" | "center" }[] = [
   { name: "proposal_name", required: true, label: "Proposal Name", align: "left", field: (row:TransformedProposal) => row.proposal_name },
@@ -314,9 +328,19 @@ const approveAction = async(row:TransformedProposal) => {
   }
 }
 
-onMounted(async() => {
+const handleRowClick = (evt:Event, row:any, index:number) => {
+  const detail = proposalsTransactionDetails.value.find(p => p.proposal_name === row.proposal_name)
+  console.log("Found details:", detail)
 
-})
+  // If details are found, store them in the selectedProposalDetails for display
+  if (detail) {
+    selectedProposalDetails.value = detail
+  } else {
+    // If no details are found, set selectedProposalDetails to null or an empty object
+    selectedProposalDetails.value = {} as ProposalDetails
+    console.log("No details found for selected proposal.")
+  }
+}
 
 watch([() => sessionStore.whatChain, () => sessionStore.chainUrl], () => {
   contractStore.updateApiClient()
