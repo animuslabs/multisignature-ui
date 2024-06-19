@@ -17,7 +17,7 @@ export const useSessionStore = defineStore({
     authorization: (state) => PermissionLevel.from(state.session?.permissionLevel as PermissionLevel || { actor: "boid", permission: "active" }),
     sessionState: (state) => state,
     whatChain: (state) => state.session?.chain.name || "",
-    chainUrl: (state) => state.session?.chain.url || endpoints[0]?.[1],
+    chainUrl: (state) => state.session?.chain.url || endpoints[1]?.[1],
     chainLogo: (state) => state.session?.chain.getLogo() || "",
     multiSignState: (state) => state.multiSignToggleState
   },

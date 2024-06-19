@@ -1,22 +1,24 @@
 <template>
-  <q-page padding class="flex flex-center">
-    <q-card>
-      <q-card-section>
-        <div class="text-h6 q-mb-sm">
-          Account Information
-        </div>
-        <q-input v-model="initialAccountName" label="Account Name" filled />
-        <q-btn label="Fetch Account Info" @click="fetchInitialAccountInfo" color="primary" class="q-mt-md" />
-        <q-separator class="q-ma-md" />
-        <div v-for="name in accountNames" :key="name" class="q-ma-md">
-          <AccInfoComponent
-            :account-name="name"
-            :account-object="accountObjects[name]"
-            @account-clicked="handleAccountClick"
-          />
-        </div>
-      </q-card-section>
-    </q-card>
+  <q-page padding class="container">
+    <div class="q-card-container">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6 q-mb-sm">
+            Account Information
+          </div>
+          <q-input v-model="initialAccountName" label="Account Name" filled />
+          <q-btn label="Fetch Account Info" @click="fetchInitialAccountInfo" color="primary" class="q-mt-md" />
+          <q-separator class="q-ma-md" />
+          <div v-for="name in accountNames" :key="name" class="q-ma-md">
+            <AccInfoComponent
+              :account-name="name"
+              :account-object="accountObjects[name]"
+              @account-clicked="handleAccountClick"
+            />
+          </div>
+        </q-card-section>
+      </q-card>
+    </div>
   </q-page>
 </template>
 
@@ -57,3 +59,21 @@ const handleAccountClick = async(accountName:string) => {
 }
 </script>
 
+<style lang="scss" scoped>
+.container {
+  display: flex;
+  flex-direction: row inline;
+  align-items: top;
+  justify-content: center;
+  height: 100%;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+.q-card-container {
+  margin: auto;
+  position: absolute;
+  height: auto;
+  width: auto;
+}
+</style>

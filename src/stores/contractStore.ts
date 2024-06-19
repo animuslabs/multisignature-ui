@@ -2,22 +2,33 @@ import { defineStore } from "pinia"
 import { getContractDetails } from "src/lib/contracts"
 import { APIClient, APIClientOptions, Name, NameType } from "@wharfkit/antelope"
 import { useSessionStore } from "src/stores/sessionStore"
+import BlockchainManager from "src/lib/initializeContracts"
+import { Contract as BoidContract } from "src/lib/boid-contract-structure"
+import { Contract as EosioMsigContract } from "src/lib/eosio-msig-contract-telos-mainnet"
+
+const blockchainManager = new BlockchainManager()
 
 interface ActionDetails {
-  targetContract:string,
+  blockchainManager:BlockchainManager;
+  targetContract:string;
   actionNames:NameType[];
-  actionStructures:any[]; // Replace 'any' with a more specific type if possible
-  clientAPI:APIClient | null;
+  actionStructures:any[];
 }
 
 export const useContractStore = defineStore("useContractStore", {
   state: ():ActionDetails => ({
+    blockchainManager: new BlockchainManager(),
     targetContract: "",
     actionNames: [],
-    actionStructures: [],
-    clientAPI: null as APIClient | null
+    actionStructures: []
   }),
   getters: {
+    boidContract():BoidContract | unknown {
+      return this.blockchainManager.boid
+    },
+    eosioMsigContract():EosioMsigContract | unknown {
+      return this.blockchainManager.eosioMsig
+    },
     // Getter to get action names as string array
     actionNamesAsStringArray: (state) => {
       return state.actionNames.map(name => name.toString())
@@ -32,11 +43,7 @@ export const useContractStore = defineStore("useContractStore", {
   },
   actions: {
     initializeApiClient() {
-      const sessionStore = useSessionStore()
-      const url = sessionStore.chainUrl
-
-      const apiClientOptions:APIClientOptions = { url }
-      this.clientAPI = new APIClient(apiClientOptions)
+      blockchainManager.initializeApiClient()
     },
 
     updateApiClient() {

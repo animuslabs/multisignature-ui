@@ -23,6 +23,12 @@
           >
             Contract
           </q-btn>
+          <q-btn
+            @click="$router.push('/proposals')"
+            flat
+          >
+            Proposals
+          </q-btn>
           <!-- Dropdown Button for LoginMenu -->
           <q-btn-dropdown icon="person" color="primary">
             <LoginMenu />

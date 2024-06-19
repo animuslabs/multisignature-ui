@@ -1,14 +1,21 @@
 import { ContractKit } from "@wharfkit/contract"
 import { APIClient, Name } from "@wharfkit/antelope"
 import { useSessionStore } from "src/stores/sessionStore"
-import { ActionNameParams, Contract as BoidContract, TableNames, RowType, ActionNames, abi as boidABI } from "src/lib/boid-contract-structure"
-import { Contract as EosioMsigContract, Types as TypesMultiSign } from "src/lib/eosio-msig-contract-telos-mainnet"
+import { ActionNameParams, Contract as BoidContract, TableNames as TableNamesBoid, RowType as RowTypeBoid, ActionNames, abi as boidABI } from "src/lib/boid-contract-structure"
+import {
+  Contract as EosioMsigContract,
+  Types as TypesMultiSign,
+  RowType as RowTypeMsig,
+  TableNames as TableNamesMsig,
+  ActionNames as ActionProposalNames,
+  ActionNameParams as ActionProposalNameParams
+} from "src/lib/eosio-msig-contract-telos-mainnet"
 import { TransactResult, ABI, TimePointSec, NameType } from "@wharfkit/session"
 import { useSignersStore } from "src/stores/useSignersStore"
 import { generateRandomName, expDate, serializeActionData } from "src/lib/reuseFunctions"
 import { useContractStore } from "src/stores/contractStore"
+import { toObject } from "src/lib/util"
 
-const contractStore = useContractStore()
 const sessionStore = useSessionStore()
 const signersStore = useSignersStore()
 interface MsigResult {result:TransactResult, propName:NameType}
@@ -19,76 +26,52 @@ const reqSignAccsConverted = signersStore.signers.map((signer) =>
     permission: Name.from(signer.permission)
   })
 )
-
+const contractStore = useContractStore()
 contractStore.updateApiClient()
-
-const clientAPI = contractStore.clientAPI as APIClient
-if (!clientAPI) {
-  throw new Error("API client is not initialized")
-}
-
-const contractKit = new ContractKit({
-  client: clientAPI
-})
 
 // gets the ABI for a given account
 const getABI = async(accountName:string) => {
-  if (!contractStore.clientAPI) {
+  const api = contractStore.blockchainManager.getClientAPI()
+  if (!api) {
     throw new Error("API client is not initialized")
   }
-
-  const abi = await contractStore.clientAPI.v1.chain.get_abi(accountName)
-  return abi
+  try {
+    // Access the `v1.chain.get_abi` method correctly
+    const abi = await api.v1.chain.get_abi(accountName)
+    return abi
+  } catch (error) {
+    console.error("Failed to fetch ABI:", error)
+    throw error // Optionally re-throw the error to handle it in the calling context
+  }
 }
 
 export const getAccInfo = async(accountName:string) => {
-  if (!contractStore.clientAPI) {
+  const api = contractStore.blockchainManager.getClientAPI()
+  if (!api) {
     throw new Error("API client is not initialized")
   }
-
-  const accInfo = await contractStore.clientAPI.v1.chain.get_account(accountName)
+  const accInfo = await api.v1.chain.get_account(accountName)
   console.log("Account info:", accInfo)
   return accInfo
 }
 
-// custom ABI for wt.boid::transfer
-const wtboidTransferabi = ABI.from({
-  structs: [
-    {
-      name: "transfer",
-      base: "",
-      fields: [
-        {
-          name: "from",
-          type: "name"
-        },
-        {
-          name: "to",
-          type: "name"
-        },
-        {
-          name: "quantity",
-          type: "asset"
-        },
-        {
-          name: "memo",
-          type: "string"
-        }
-      ]
-    }]
-})
-
-// abi for boid smart contract taken from local file
-export const boid = new BoidContract(contractKit)
-
-// abi for eosio.msig smart contract taken from local file
-export const eosioMsig = new EosioMsigContract(contractKit)
-
-
-export async function fetchDataFromTable<T extends TableNames>(tableName:T):Promise<RowType<T>[] | undefined> {
+export async function fetchDataFromTable<T extends TableNamesBoid>(tableName:T):Promise<RowTypeBoid<T>[] | undefined> {
   try {
-    const tableData:RowType<T>[] = await boid.table(tableName).query().all()
+    const boid = contractStore.blockchainManager.boid
+    const tableData:RowTypeBoid<T>[] = await boid.table(tableName).query().all()
     console.log(`Data fetched from ${tableName}:`, tableData)
+    return tableData
+  } catch (error:any) {
+    console.error(`Error fetching data from ${tableName}:`, error)
+    throw error
+  }
+}
+
+export async function fetchDataFromMsigTable<T extends TableNamesMsig>(tableName:T, acc:string):Promise<RowTypeMsig<T>[] | undefined> {
+  try {
+    const scope = Name.from(acc)
+    const eosioMsig = contractStore.blockchainManager.eosioMsig
+    const tableData:RowTypeMsig<T>[] = await eosioMsig.table(tableName, scope).query().all()
     return tableData
   } catch (error:any) {
     console.error(`Error fetching data from ${tableName}:`, error)
@@ -106,6 +89,7 @@ export async function createAction<A extends ActionNames>(
     console.log(`Creating action: ${String(actionName)} with data:`, action_data)
     const session = sessionStore.session
     if (!session) throw new Error("Session not loaded")
+    const boid = contractStore.blockchainManager.boid
     const action = boid.action(actionName, action_data)
     console.log("Action created:", action)
 
@@ -129,6 +113,35 @@ export async function createAction<A extends ActionNames>(
     return { result }
   } catch (error) {
     console.error("Error in createAction:", error)
+    throw error
+  }
+}
+
+// only used not in multi sign mode
+export async function createProposalAction<A extends ActionProposalNames>(
+  actionName:A,
+  action_data:ActionProposalNameParams[A]
+) {
+  console.log("createAction called with", { actionName, action_data })
+  try {
+    console.log(`Creating action: ${String(actionName)} with data:`, action_data)
+    const session = sessionStore.session
+    if (!session) throw new Error("Session not loaded")
+    const eosioMsig = contractStore.blockchainManager.eosioMsig
+    const action = eosioMsig.action(actionName, action_data)
+    console.log("Action created:", action)
+
+    if (!sessionStore.session) {
+      console.error("Session is not defined")
+      throw new Error("Session is not defined")
+    }
+    let result
+    console.log("Transacting action...")
+    result = await session.transact({ action })
+    console.log("Transaction result:", result)
+    return { result }
+  } catch (error) {
+    console.error("Error in createAction:", toObject(error))
     throw error
   }
 }
@@ -190,6 +203,7 @@ export async function createAndExecuteMultiSignProposal(
     console.log("Proposal data prepared:", proposalData)
 
     // Execute the transaction
+    const eosioMsig = contractStore.blockchainManager.eosioMsig
     const action = eosioMsig.action("propose", proposalData)
     const result = await session.transact({ action })
     console.log("Transaction result:", result)
