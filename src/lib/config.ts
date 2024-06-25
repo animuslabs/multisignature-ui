@@ -6,45 +6,116 @@ export interface NetworkConfig {
   logo:string
 }
 
-export const endpoints:string[][] = [
-  ["EOS Endpoint", "https://eos.api.eosnation.io"],
-  ["Telos Endpoint", "https://telos.api.animus.is"],
-  ["Telos Testnet Endpoint", "https://telos.testnet.boid.animus.is"],
-  ["IPFS Endpoint", "https://ipfs.animus.is/ipfs/"], // 3
-  ["EOS AtomicAssets", "https://eos.api.atomicassets.io"], // 4
-  ["WAX AtomicAssets", "https://wax.eu.eosamsterdam.net"], // 5
-  ["EOS AtomicHub", "https://eos.atomichub.io/explorer/asset/"], // 6
-  ["EOS AtomicHub Templates", "https://eos.atomichub.io/explorer/template/"], // 7
-  ["Nefty blocks Telos Testnet Assets", "https://telos-test.neftyblocks.com/assets/"], // 8
-  ["Nefty blocks Telos Testnet Templates", "https://telos-test.neftyblocks.com/templates/"], // 9
-  ["Nefty blocks Telos Assets", "https://telos.neftyblocks.com/assets/"], // 10
-  ["Nefty blocks Telos Templates", "https://telos.neftyblocks.com/templates/"], // 11
-  ["WAX Endpoint", "https://api.wax.alohaeos.com"] // 12
+interface Endpoint {
+  name:string;
+  url:string;
+}
+
+export interface ChainEndpoints {
+  chain:string;
+  endpoints:Endpoint[];
+}
+
+export const chainEndpoints:ChainEndpoints[] = [
+  {
+    chain: "EOS",
+    endpoints: [
+      { name: "Boid BP", url: "https://eos.api.boid.animus.is" },
+      { name: "EOSphere", url: "https://eos.eosphere.io" },
+      { name: "EOS Nation", url: "https://eos.api.eosnation.io" },
+      { name: "EOS Amsterdam", url: "https://mainnet.eosamsterdam.net" },
+      { name: "EOSeoul", url: "https://api.eoseoul.io" }
+    ]
+  },
+  {
+    chain: "Telos",
+    endpoints: [
+      { name: "Boid BP", url: "https://telos.api.boid.animus.is" },
+      { name: "EOSphere", url: "https://telos.eosphere.io" },
+      { name: "EOS Nation", url: "https://telos.api.eosnation.io" },
+      { name: "Caleos", url: "https://telos.caleos.io" },
+      { name: "EOS Dublin", url: "https://telos.eosdublin.io" }
+    ]
+  },
+  {
+    chain: "Telos Testnet",
+    endpoints: [
+      { name: "Boid BP", url: "https://telos.testnet.boid.animus.is" },
+      { name: "EOSphere", url: "https://telos-testnet.eosphere.io" },
+      { name: "EOS Nation", url: "https://telostest.api.eosnation.io" },
+      { name: "Teleology One", url: "https://testnet.telos.teleology.one" }
+    ]
+  },
+  {
+    chain: "WAX",
+    endpoints: [
+      { name: "AlohaWAX", url: "https://api.wax.alohaeos.com" }
+    ]
+  }
 ]
+
+
+export const hyperionEndpoints:ChainEndpoints[] = [
+  {
+    chain: "telos",
+    endpoints: [
+      { name: "Telos Madrid", url: "https://hyperion.telosmadrid.io" },
+      { name: "Boid BP", url: "https://hyperion.telos.animus.is" },
+      { name: "Telos Unlimited", url: "https://hyperion.telosunlimited.io" },
+      { name: "Telos Arabia", url: "https://api.telosarabia.net" },
+      { name: "EOSUSA", url: "https://telos.eosusa.io" },
+      { name: "eoSphere", url: "https://telos.eosphere.io" },
+      { name: "Kainos BP", url: "https://api.kainosbp.com" }
+    ]
+  },
+  {
+    chain: "eos",
+    endpoints: [
+      { name: "EOSUSA", url: "https://eos.eosusa.io" }
+    ]
+  },
+  {
+    chain: "telostestnet",
+    endpoints: [
+      { name: "Boid BP", url: "https://hyperion.telos-testnet.animus.is" },
+      { name: "Telos Teleology", url: "https://telos.teleology.one:343" }
+    ]
+  },
+  {
+    chain: "wax",
+    endpoints: [
+      { name: "LedgerWise", url: "http://waxapi.ledgerwise.io" },
+      { name: "AlohaEOS", url: "http://api.wax.alohaeos.com" },
+      { name: "EOS Arabia", url: "http://api-wax.eosarabia.net" },
+      { name: "CryptoLions", url: "http://wax.cryptolions.io" }
+    ]
+  }
+]
+
 export const networks:NetworkConfig[] = [
   // default network should be first!!!
   {
     name: "telos",
     chainId: "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11",
-    nodeUrl: endpoints[1]?.[1] ?? "",
+    nodeUrl: "", // value is managed by the apiStore
     logo: "./Telos-circle.png"
   },
   {
     name: "telostestnet",
     chainId: "1eaa0824707c8c16bd25145493bf062aecddfeb56c736f6ba6397f3195f33c9f",
-    nodeUrl: endpoints[2]?.[1] ?? "",
+    nodeUrl: "", // value is managed by the apiStore
     logo: "./Telos-circle.png"
   },
   {
     name: "eos",
     chainId: "aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906",
-    nodeUrl: endpoints[0]?.[1] ?? "",
+    nodeUrl: "", // value is managed by the apiStore
     logo: "https://bloks.io/img/chains/eos.png"
   },
   {
     name: "wax",
     chainId: "1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4",
-    nodeUrl: endpoints[12]?.[1] ?? "",
+    nodeUrl: "", // value is managed by the apiStore
     logo: "https://wax.bloks.io/img/chains/wax.png"
   }
 ]

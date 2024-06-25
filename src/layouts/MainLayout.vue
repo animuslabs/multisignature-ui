@@ -3,11 +3,12 @@
     <q-header elevated>
       <q-toolbar>
         <q-toolbar-title>
+          <q-avatar><img src="../../public/Antelope-Logo.png"></q-avatar>
           <q-btn
             @click="$router.push('/')"
             flat
           >
-            Antelope M-Sign
+            M-Sign
           </q-btn>
         </q-toolbar-title>
         <div class="q-gutter-md">

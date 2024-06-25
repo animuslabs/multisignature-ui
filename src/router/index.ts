@@ -7,6 +7,7 @@ import {
 } from "vue-router"
 
 import routes from "./routes"
+import { useApiStore } from "src/stores/apiStore"
 
 /*
  * If not building with SSR mode, you can
@@ -30,6 +31,15 @@ export default route(function(/* { store, ssrContext } */) {
     // quasar.conf.js -> build -> vueRouterMode
     // quasar.conf.js -> build -> publicPath
     history: createHistory(process.env.VUE_ROUTER_BASE)
+  })
+
+  // Navigation guard to set the active chain
+  Router.beforeEach((to, from, next) => {
+    const apiStore = useApiStore() // Pass the store instance if needed
+    // Check if the route has a chain parameter; if not, default to 'Telos'
+    const chain = to.params.chain || "Telos"
+    apiStore.setActiveChain(chain.toString())
+    next()
   })
 
   return Router

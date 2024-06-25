@@ -2,7 +2,7 @@ import { APIClient, APIClientOptions } from "@wharfkit/antelope"
 import { ContractKit } from "@wharfkit/contract"
 import { Contract as BoidContract } from "src/lib/boid-contract-structure"
 import { Contract as EosioMsigContract } from "src/lib/eosio-msig-contract-telos-mainnet"
-import { useSessionStore } from "src/stores/sessionStore"
+import { useApiStore } from "src/stores/apiStore"
 import { watch } from "vue"
 
 class BlockchainManager {
@@ -10,7 +10,7 @@ class BlockchainManager {
   private contractKit:ContractKit | null = null
   private boidContract:BoidContract | null = null
   private eosioMsigContract:EosioMsigContract | null = null
-  private sessionStore = useSessionStore()
+  private apiStore = useApiStore()
 
   constructor() {
     this.setupReactivity()
@@ -19,7 +19,7 @@ class BlockchainManager {
 
   initializeApiClient() {
     try {
-      const url = this.sessionStore.chainUrl
+      const url = this.apiStore.activeUrl
       const apiClientOptions:APIClientOptions = { url }
       this.clientAPI = new APIClient(apiClientOptions)
       this.contractKit = new ContractKit({ client: this.clientAPI })
@@ -30,7 +30,7 @@ class BlockchainManager {
   }
 
   setupReactivity() {
-    watch(() => this.sessionStore.chainUrl, (newUrl) => {
+    watch(() => this.apiStore.activeUrl, (newUrl) => {
       if (newUrl && this.clientAPI) { // Ensure there is a meaningful change
         this.initializeApiClient()
       }

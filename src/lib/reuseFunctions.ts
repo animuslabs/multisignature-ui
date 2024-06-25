@@ -1,4 +1,6 @@
 import { Bytes, Name, ABI, Serializer } from "@wharfkit/antelope"
+import axios from "axios"
+import { ApiResponse } from "src/lib/types"
 
 export async function bytesToJson<T>(bytes:Bytes):Promise<T> {
   try {
@@ -86,4 +88,34 @@ export const formatTime = (time:string):string => {
 
   // Format the date and time components as desired
   return `${year}-${month}-${day} ${hours}:${minutes}`
+}
+
+export const getProposalsDataHyperion = async(
+  url:string,
+  executed?:boolean,
+  proposal?:string,
+  proposer?:string,
+  account?:string,
+  reqAcc?:string,
+  providedAcc?:string
+):Promise<ApiResponse> => {
+  try {
+    // Prepare query parameters dynamically
+    const params = new URLSearchParams()
+
+    // Append parameters only if they exist
+    if (executed !== undefined) params.append("executed", executed.toString()) // Append only if executed is provided
+    if (proposer) params.append("proposer", proposer)
+    if (proposal) params.append("proposal", proposal)
+    if (account) params.append("account", account)
+    if (reqAcc) params.append("reqAcc", reqAcc)
+    if (providedAcc) params.append("providedAcc", providedAcc)
+
+    // Construct the request URL with query parameters
+    const response = await axios.get(`${url}/v2/state/get_proposals?${params.toString()}`)
+    return response.data
+  } catch (error) {
+    console.error("Error fetching proposals data from Hyperion:", error)
+    throw error // Re-throw the error to handle it further up in your application
+  }
 }

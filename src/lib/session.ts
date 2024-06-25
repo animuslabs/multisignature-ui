@@ -3,32 +3,34 @@ import { SessionKit, Session } from "@wharfkit/session"
 import { WebRenderer } from "@wharfkit/web-renderer"
 import { WalletPluginAnchor } from "@wharfkit/wallet-plugin-anchor"
 import { ref } from "vue"
+import { useApiStore } from "src/stores/apiStore"
 
+const apiStore = useApiStore()
 let session = ref<Session | undefined>(undefined)
 
 const webRenderer = new WebRenderer()
 const sessionKit = new SessionKit({
   appName: "BoidAdmin",
-  // Networks: 0 = Telos Mainnet, 1 = Telos Testnet, 2 = EOS Mainnet
+  // Networks: 0 = Telos Mainnet, 1 = Telos Testnet, 2 = EOS Mainnet, 3 = WAX Mainnet
   chains: [
     {
       id: networks[0]!.chainId,
-      url: networks[0]!.nodeUrl,
+      url: apiStore.$state.chainUrls.Telos!,
       logo: networks[0]!.logo
     },
     {
       id: networks[1]!.chainId,
-      url: networks[1]!.nodeUrl,
+      url: apiStore.$state.chainUrls.TelosTestnet!,
       logo: networks[1]!.logo
     },
     {
       id: networks[2]!.chainId,
-      url: networks[2]!.nodeUrl,
+      url: apiStore.$state.chainUrls.EOS!,
       logo: networks[2]!.logo
     },
     {
       id: networks[3]!.chainId,
-      url: networks[3]!.nodeUrl,
+      url: apiStore.$state.chainUrls.WAX!,
       logo: networks[3]!.logo
     }
   ],

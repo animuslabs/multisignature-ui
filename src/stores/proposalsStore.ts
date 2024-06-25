@@ -3,7 +3,8 @@ import { defineStore } from "pinia"
 import { Signer } from "src/lib/types"
 import { Types as TypesMultiSign, ActionNameParams as ActionProposalNameParams } from "src/lib/eosio-msig-contract-telos-mainnet"
 import { fetchDataFromMsigTable, createProposalAction } from "src/lib/contracts"
-import { TransactResult, ABI, TimePointSec, NameType } from "@wharfkit/session"
+import { TransactResult } from "@wharfkit/session"
+import { getProposalsDataHyperion } from "src/lib/reuseFunctions"
 
 export const proposalsStore = defineStore("proposals", {
   state: () => ({
@@ -47,6 +48,19 @@ export const proposalsStore = defineStore("proposals", {
     async cancelProposalAction(actionData:ActionProposalNameParams["cancel"]):Promise<TransactResult | unknown> {
       const data = await createProposalAction("cancel", actionData)
       return data
+    },
+    async getProposalByName(url:string, proposal:string):Promise<string> {
+      try {
+        const data = await getProposalsDataHyperion(url, undefined, proposal)
+        const proposerName = data.proposals?.[0]?.proposer
+        if (!proposerName) {
+          throw new Error(`No proposer found for the proposal '${proposal}'. The proposal may not exist.`)
+        }
+        return proposerName
+      } catch (error:any) {
+        console.error("Error fetching proposer name:", error.message)
+        throw error
+      }
     }
   }
 })

@@ -1,7 +1,6 @@
 import { defineStore } from "pinia"
 import { getContractDetails } from "src/lib/contracts"
-import { APIClient, APIClientOptions, Name, NameType } from "@wharfkit/antelope"
-import { useSessionStore } from "src/stores/sessionStore"
+import { NameType } from "@wharfkit/antelope"
 import BlockchainManager from "src/lib/initializeContracts"
 import { Contract as BoidContract } from "src/lib/boid-contract-structure"
 import { Contract as EosioMsigContract } from "src/lib/eosio-msig-contract-telos-mainnet"

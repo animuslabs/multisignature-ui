@@ -111,15 +111,16 @@
 
 
 <script lang="ts" setup>
-import { ref, Ref, onMounted, watch, computed } from "vue"
+import { ref, Ref, onMounted, watch, computed, defineProps } from "vue"
+import { useRoute } from "vue-router"
 import { proposalsStore } from "src/stores/proposalsStore"
-import { Types as TypesMultiSign, ActionNameParams as ActionProposalNameParams, abi as msigABI } from "src/lib/eosio-msig-contract-telos-mainnet"
-import { abi as boidABI } from "src/lib/boid-contract-structure"
-import { formatTime, bytesToJson } from "src/lib/reuseFunctions"
+import { Types as TypesMultiSign, ActionNameParams as ActionProposalNameParams } from "src/lib/eosio-msig-contract-telos-mainnet"
+import { formatTime } from "src/lib/reuseFunctions"
 import { useSessionStore } from "src/stores/sessionStore"
 import { useContractStore } from "src/stores/contractStore"
+import { useApiStore } from "src/stores/apiStore"
 import { toObject } from "src/lib/util"
-import { Bytes, Name, ABI, Transaction, PackedTransaction } from "@wharfkit/antelope"
+import { Transaction, PackedTransaction } from "@wharfkit/antelope"
 
 type Approval = {
   level:{
@@ -146,17 +147,64 @@ type ProposalDetails = {
   earliest_exec_time:string;
 };
 
+const store = proposalsStore()
+const proposalAcc = ref("")
+
+const route = useRoute()
 const sessionStore = useSessionStore()
 const contractStore = useContractStore()
-const chain = computed(() => sessionStore.whatChain || "Login!")
-const endpoint = computed(() => sessionStore.chainUrl || "N/A")
+const chain = computed(() => route.params.chain || sessionStore.whatChain || "Login!")
+const proposalName = computed(() => route.params.proposalName?.toString() || "")
+const apiStore = useApiStore()
+const activeChain = computed(() => apiStore.activeChain)
+const activeHyperionUrl = computed(() => apiStore.activeHyperionUrl.toString())
+
+const isLoading = ref(false)
+const error = ref("")
+
+async function fetchProposerName(proposalName:string) {
+  isLoading.value = true
+  error.value = ""
+  try {
+    const proposerName = await store.getProposalByName(activeHyperionUrl.value, proposalName)
+    if (proposerName) {
+      proposalAcc.value = proposerName
+      await searchProposals()
+    } else {
+      error.value = "No proposer found for the given proposal name."
+    }
+  } catch (err) {
+    error.value = "Failed to fetch data due to an error."
+    console.error("Failed to fetch proposal by name:", err)
+  } finally {
+    isLoading.value = false
+  }
+}
+// Watch for changes in the active chain to fetch data
+watch(activeChain, (newChain, oldChain) => {
+  if (newChain !== oldChain) {
+    // fetchProposals() // Define this method to fetch data based on the new chain
+  }
+}, { immediate: true })
+
+// Watch the proposalName and fetch proposer's account when it changes
+watch(proposalName, async(newProposalName) => {
+  if (newProposalName) {
+    await fetchProposerName(newProposalName)
+  }
+  await searchProposals().then(() => {
+    handleProvidedProposalParameter()
+  })
+}, { immediate: true })
+
+const endpoint = computed(() => apiStore.activeUrl || "N/A")
 const user = computed(() => sessionStore.username || "Login!")
 
-const store = proposalsStore()
+
 const proposalsData:Ref<TypesMultiSign.approvals_info[]> = ref([])
 const transformedProposalsData:Ref<TransformedProposal[]> = ref([])
 const proposalsDetails:Ref<TypesMultiSign.proposal[]> = ref([])
-const proposalAcc = ref("")
+
 const proposalsTransactionDetails = ref({} as ProposalDetails[])
 const selectedProposalDetails = ref<ProposalDetails | null>(null)
 
@@ -197,6 +245,20 @@ const searchProposals = async() => {
   }
 }
 
+// when router parameter is provided, get proposal details
+const handleProvidedProposalParameter = () => {
+  const detail = proposalsTransactionDetails.value.find(p => p.proposal_name === proposalName.value)
+  console.log("Found details:", detail)
+
+  // If details are found, store them in the selectedProposalDetails for display
+  if (detail) {
+    selectedProposalDetails.value = detail
+  } else {
+    // If no details are found, set selectedProposalDetails to null or an empty object
+    selectedProposalDetails.value = {} as ProposalDetails
+    console.log("No details found for selected proposal.")
+  }
+}
 
 const columns:{ name:string; label:string; field:string | ((row:TransformedProposal) =>any); required?:boolean; align?:"left" | "right" | "center" }[] = [
   { name: "proposal_name", required: true, label: "Proposal Name", align: "left", field: (row:TransformedProposal) => row.proposal_name },
@@ -346,6 +408,12 @@ const handleRowClick = (evt:Event, row:any, index:number) => {
 
 watch([() => sessionStore.whatChain, () => sessionStore.chainUrl], () => {
   contractStore.updateApiClient()
+})
+
+onMounted(async() => {
+  if (proposalAcc.value) {
+    await searchProposals()
+  }
 })
 </script>
 

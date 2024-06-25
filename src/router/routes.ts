@@ -8,7 +8,22 @@ const routes:RouteRecordRaw[] = [
       { path: "", component: () => import("pages/StartPage.vue") },
       { path: "contract", component: () => import("pages/ContractPage.vue") },
       { path: "accmap", component: () => import("pages/AccountMapPage.vue") },
-      { path: "proposals", component: () => import("pages/ProposalsPage.vue") }
+      {
+        // Base proposals route
+        path: "proposals",
+        component: () => import("pages/ProposalsPage.vue"),
+        children: [
+          {
+            // Handle optional chain and proposalName as query parameters
+            path: ":chain?/:proposalName?",
+            component: () => import("pages/ProposalsPage.vue"),
+            props: (route) => ({
+              chain: route.params.chain,
+              proposalName: route.params.proposalName
+            })
+          }
+        ]
+      }
     ]
   },
   {

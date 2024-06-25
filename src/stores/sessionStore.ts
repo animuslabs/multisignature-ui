@@ -2,7 +2,7 @@ import { defineStore } from "pinia"
 import { LocalStorage } from "quasar"
 import { sessionLogin, sessionLogout, sessionRestore } from "src/lib/session"
 import { PermissionLevel, Session } from "@wharfkit/session"
-import { endpoints } from "src/lib/config"
+import { chainEndpoints } from "src/lib/config"
 
 export const useSessionStore = defineStore({
   id: "sessionStore",
@@ -17,7 +17,7 @@ export const useSessionStore = defineStore({
     authorization: (state) => PermissionLevel.from(state.session?.permissionLevel as PermissionLevel || { actor: "boid", permission: "active" }),
     sessionState: (state) => state,
     whatChain: (state) => state.session?.chain.name || "",
-    chainUrl: (state) => state.session?.chain.url || endpoints[1]?.[1],
+    chainUrl: (state) => state.session?.chain.url || chainEndpoints[1]?.endpoints[0]?.url,
     chainLogo: (state) => state.session?.chain.getLogo() || "",
     multiSignState: (state) => state.multiSignToggleState
   },
