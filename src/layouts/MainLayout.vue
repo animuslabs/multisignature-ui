@@ -3,15 +3,20 @@
     <q-header elevated>
       <q-toolbar>
         <q-toolbar-title>
-          <q-avatar><img src="../../public/Antelope-Logo.png"></q-avatar>
+          <q-btn
+            @click="$router.push('/')"
+            flat
+          >
+            <q-avatar><img src="/Antelope-Logo.png"></q-avatar>
+          </q-btn>
+        </q-toolbar-title>
+        <div class="q-gutter-md">
           <q-btn
             @click="$router.push('/')"
             flat
           >
             M-Sign
           </q-btn>
-        </q-toolbar-title>
-        <div class="q-gutter-md">
           <q-btn
             @click="$router.push('/accmap')"
             flat

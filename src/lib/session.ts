@@ -15,33 +15,38 @@ const sessionKit = new SessionKit({
   chains: [
     {
       id: networks[0]!.chainId,
-      url: apiStore.$state.chainUrls.Telos!,
+      url: apiStore.$state.chainUrls.Telos! || "",
       logo: networks[0]!.logo
     },
     {
       id: networks[1]!.chainId,
-      url: apiStore.$state.chainUrls.TelosTestnet!,
+      url: apiStore.$state.chainUrls.TelosTestnet! || "",
       logo: networks[1]!.logo
     },
     {
       id: networks[2]!.chainId,
-      url: apiStore.$state.chainUrls.EOS!,
+      url: apiStore.$state.chainUrls.EOS! || "",
       logo: networks[2]!.logo
-    },
-    {
-      id: networks[3]!.chainId,
-      url: apiStore.$state.chainUrls.WAX!,
-      logo: networks[3]!.logo
     }
+    // {
+    //   id: networks[3]!.chainId,
+    //   url: apiStore.$state.chainUrls.WAX! || "",
+    //   logo: networks[3]!.logo
+    // }
   ],
   ui: webRenderer,
   walletPlugins: [new WalletPluginAnchor()]
 })
 
 export async function sessionLogin():Promise<Session | undefined> {
-  const response = await sessionKit.login()
-  session.value = response.session
-  return response.session
+  try {
+    const response = await sessionKit.login()
+    session.value = response.session
+    return response.session
+  } catch (error) {
+    console.error("Failed to login:", error)
+    throw error // Re-throw the error if you need to handle it higher up in your application
+  }
 }
 
 export async function sessionLogout():Promise<Session | undefined> {

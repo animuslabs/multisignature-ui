@@ -111,7 +111,7 @@
 
 
 <script lang="ts" setup>
-import { ref, Ref, onMounted, watch, computed, defineProps } from "vue"
+import { ref, Ref, onMounted, watch, computed } from "vue"
 import { useRoute } from "vue-router"
 import { proposalsStore } from "src/stores/proposalsStore"
 import { Types as TypesMultiSign, ActionNameParams as ActionProposalNameParams } from "src/lib/eosio-msig-contract-telos-mainnet"
@@ -163,8 +163,15 @@ const isLoading = ref(false)
 const error = ref("")
 
 async function fetchProposerName(proposalName:string) {
+  console.log("Logging in with URL:", activeHyperionUrl.value)
+  if (!activeHyperionUrl.value) {
+    console.error("Active Hyperion URL is not defined.")
+    return
+  }
+
   isLoading.value = true
   error.value = ""
+
   try {
     const proposerName = await store.getProposalByName(activeHyperionUrl.value, proposalName)
     if (proposerName) {
@@ -180,22 +187,7 @@ async function fetchProposerName(proposalName:string) {
     isLoading.value = false
   }
 }
-// Watch for changes in the active chain to fetch data
-watch(activeChain, (newChain, oldChain) => {
-  if (newChain !== oldChain) {
-    // fetchProposals() // Define this method to fetch data based on the new chain
-  }
-}, { immediate: true })
 
-// Watch the proposalName and fetch proposer's account when it changes
-watch(proposalName, async(newProposalName) => {
-  if (newProposalName) {
-    await fetchProposerName(newProposalName)
-  }
-  await searchProposals().then(() => {
-    handleProvidedProposalParameter()
-  })
-}, { immediate: true })
 
 const endpoint = computed(() => apiStore.activeUrl || "N/A")
 const user = computed(() => sessionStore.username || "Login!")
@@ -244,6 +236,23 @@ const searchProposals = async() => {
     console.error("Error in searchProposals:", error)
   }
 }
+
+// Watch for changes in the active chain to fetch data
+watch(activeChain, (newChain, oldChain) => {
+  if (newChain !== oldChain) {
+    // fetchProposals() // Define this method to fetch data based on the new chain
+  }
+}, { immediate: true })
+
+// Watch the proposalName and fetch proposer's account when it changes
+watch(proposalName, async(newProposalName) => {
+  if (newProposalName) {
+    await fetchProposerName(newProposalName)
+  }
+  await searchProposals().then(() => {
+    handleProvidedProposalParameter()
+  })
+}, { immediate: true })
 
 // when router parameter is provided, get proposal details
 const handleProvidedProposalParameter = () => {

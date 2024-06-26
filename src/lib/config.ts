@@ -80,16 +80,16 @@ export const hyperionEndpoints:ChainEndpoints[] = [
       { name: "Boid BP", url: "https://hyperion.telos-testnet.animus.is" },
       { name: "Telos Teleology", url: "https://telos.teleology.one:343" }
     ]
-  },
-  {
-    chain: "wax",
-    endpoints: [
-      { name: "LedgerWise", url: "http://waxapi.ledgerwise.io" },
-      { name: "AlohaEOS", url: "http://api.wax.alohaeos.com" },
-      { name: "EOS Arabia", url: "http://api-wax.eosarabia.net" },
-      { name: "CryptoLions", url: "http://wax.cryptolions.io" }
-    ]
   }
+  // {
+  //   chain: "wax",
+  //   endpoints: [
+  //     { name: "LedgerWise", url: "http://waxapi.ledgerwise.io" },
+  //     { name: "AlohaEOS", url: "http://api.wax.alohaeos.com" },
+  //     { name: "EOS Arabia", url: "http://api-wax.eosarabia.net" },
+  //     { name: "CryptoLions", url: "http://wax.cryptolions.io" }
+  //   ]
+  // }
 ]
 
 export const networks:NetworkConfig[] = [
@@ -98,26 +98,26 @@ export const networks:NetworkConfig[] = [
     name: "telos",
     chainId: "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11",
     nodeUrl: "", // value is managed by the apiStore
-    logo: "./Telos-circle.png"
+    logo: "/Telos-circle.png"
   },
   {
     name: "telostestnet",
     chainId: "1eaa0824707c8c16bd25145493bf062aecddfeb56c736f6ba6397f3195f33c9f",
     nodeUrl: "", // value is managed by the apiStore
-    logo: "./Telos-circle.png"
+    logo: "/Telos-circle.png"
   },
   {
     name: "eos",
     chainId: "aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906",
     nodeUrl: "", // value is managed by the apiStore
     logo: "https://bloks.io/img/chains/eos.png"
-  },
-  {
-    name: "wax",
-    chainId: "1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4",
-    nodeUrl: "", // value is managed by the apiStore
-    logo: "https://wax.bloks.io/img/chains/wax.png"
   }
+  // {
+  //   name: "wax",
+  //   chainId: "1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4",
+  //   nodeUrl: "", // value is managed by the apiStore
+  //   logo: "https://wax.bloks.io/img/chains/wax.png"
+  // }
 ]
 
 export function getNetworkByChainId(chainId:string):NetworkConfig {
