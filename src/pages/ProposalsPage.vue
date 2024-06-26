@@ -322,6 +322,8 @@ const executeAction = async(row:TransformedProposal) => {
   try {
     console.log("Execute action data:", executeData)
     await store.execProposalAction(executeData)
+    setTimeout(() => searchProposals(), 1000)
+    await searchProposals()
     console.log("Execute action executed for:", row)
   } catch (error) {
     console.error("Error in executeAction:", error)
@@ -341,6 +343,8 @@ const cancelAction = async(row:TransformedProposal) => {
   try {
     console.log("Cancel action data:", cancelData)
     await store.cancelProposalAction(cancelData)
+    setTimeout(() => searchProposals(), 1000)
+    await searchProposals()
     console.log("Cancel action executed for:", row)
   } catch (error) {
     console.error("Error in cancelAction:", error)
@@ -393,6 +397,7 @@ const approveAction = async(row:TransformedProposal) => {
       await store.approveProposalAction(approveData)
       console.log("Approve action executed for:", row)
       setTimeout(() => searchProposals(), 1000)
+      await searchProposals()
     } catch (error) {
       console.error("Error in approveAction:", error)
     }
