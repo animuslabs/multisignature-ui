@@ -18,7 +18,7 @@ export interface ChainEndpoints {
 
 export const chainEndpoints:ChainEndpoints[] = [
   {
-    chain: "EOS",
+    chain: "eos",
     endpoints: [
       { name: "Boid BP", url: "https://eos.api.boid.animus.is" },
       { name: "EOSphere", url: "https://eos.eosphere.io" },
@@ -28,7 +28,7 @@ export const chainEndpoints:ChainEndpoints[] = [
     ]
   },
   {
-    chain: "Telos",
+    chain: "telos",
     endpoints: [
       { name: "Boid BP", url: "https://telos.api.boid.animus.is" },
       { name: "EOSphere", url: "https://telos.eosphere.io" },
@@ -38,20 +38,20 @@ export const chainEndpoints:ChainEndpoints[] = [
     ]
   },
   {
-    chain: "Telos Testnet",
+    chain: "telostestnet",
     endpoints: [
       { name: "Boid BP", url: "https://telos.testnet.boid.animus.is" },
       { name: "EOSphere", url: "https://telos-testnet.eosphere.io" },
       { name: "EOS Nation", url: "https://telostest.api.eosnation.io" },
       { name: "Teleology One", url: "https://testnet.telos.teleology.one" }
     ]
-  },
-  {
-    chain: "WAX",
-    endpoints: [
-      { name: "AlohaWAX", url: "https://api.wax.alohaeos.com" }
-    ]
   }
+  // {
+  //   chain: "wax",
+  //   endpoints: [
+  //     { name: "AlohaWAX", url: "https://api.wax.alohaeos.com" }
+  //   ]
+  // }
 ]
 
 

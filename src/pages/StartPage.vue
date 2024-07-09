@@ -48,18 +48,16 @@ import { Name } from "@wharfkit/antelope"
 import { Types as TypesMultiSign } from "src/lib/eosio-msig-contract-telos-mainnet"
 import { useContractStore } from "src/stores/contractStore"
 import { useSessionStore } from "src/stores/sessionStore"
-import { ActionStructure, ActionField, BlankAction } from "src/lib/types"
-import { Action } from "@wharfkit/session"
+import { useApiStore } from "src/stores/apiStore"
+import { BlankAction } from "src/lib/types"
 import MsigActionForm from "src/components/MsigActionForm.vue"
 import { toObject } from "src/lib/util"
 import { Dialog, LocalStorage } from "quasar"
 
 const contractStore = useContractStore()
 const sessionStore = useSessionStore()
-
-const currentView = ref("before")
-const splitterModel = ref(50)
-const actionSplitterModel = ref(50)
+const apiStore = useApiStore()
+const chainName = ref(apiStore.activeChain)
 
 const blankAction:BlankAction = {
   account: "",
@@ -68,14 +66,13 @@ const blankAction:BlankAction = {
   data: {}
 }
 
-const dataFetched = ref(false)
 const reqSignAccs = reactive([
   { actor: "", permission: "active" },
   { actor: "", permission: "active" }
 ])
 onMounted(() => {
   addNewAction()
-  console.log(sessionStore.whatChain)
+  console.log(apiStore.activeChain)
   const exists = LocalStorage.getItem("reqSigners")
   if (exists) {
     reqSignAccs.splice(0, 100, ...exists as Array<any>)
@@ -158,7 +155,7 @@ const createProposal = async() => {
     console.log("reqSignAccsConverted:", reqSignAccsConverted)
 
     // Attempt to create the proposal with the actions
-    const result = await createAndExecuteMultiSignProposal(reqSignAccsConverted, actionsForProposal)
+    const result = await createAndExecuteMultiSignProposal(chainName.value, reqSignAccsConverted, actionsForProposal)
     console.log("Proposal created:", result)
 
     Dialog.create({
@@ -177,19 +174,39 @@ const createProposal = async() => {
   }
 }
 function proposalDialogText(name:string) {
-  if (sessionStore.whatChain.toLowerCase() === "telos") return `<a style="font-size:25px;" href="https://explorer.telos.net/proposal/${name}">Proposal Link</a>`
-  if (sessionStore.whatChain.toLowerCase() === "telostestnet") return `<a style="font-size:25px;" href="https://explorer-test.telos.net/proposal/${name}">Proposal Link</a>`
-  if (sessionStore.whatChain.toLowerCase() === "eos") return `<a style="font-size:25px;" href="https://bloks.io/msig/${sessionStore.authorization.actor.toString()}/${name}">Proposal Link</a>`
-  else return ""
+  if (!name) {
+    console.error("Invalid proposal name received")
+    return "" // Or provide a default error message
+  }
+
+  const lowerChain = apiStore.activeChain.toLowerCase()
+  switch (lowerChain) {
+    case "telos":
+      return `<a style="font-size:25px;" href="https://explorer.telos.net/proposal/${name}">Proposal Link</a>`
+    case "telostestnet":
+      return `<a style="font-size:25px;" href="https://explorer-test.telos.net/proposal/${name}">Proposal Link</a>`
+    case "eos":
+      return `<a style="font-size:25px;" href="https://bloks.io/msig/${sessionStore.username(apiStore.activeChain)}/${name}">Proposal Link</a>`
+    default:
+      return ""
+  }
 }
+
 
 const disableCreate = computed(() => {
   return !sessionStore.isLoggedIn
 })
 
-watch(() => sessionStore.chainUrl, () => {
+watch(() => apiStore.activeChain, () => {
   contractStore.updateApiClient()
 })
+
+// Watch for changes in chainName and react accordingly
+watch(chainName, (newChain, oldChain) => {
+  console.log(`Chain changed from ${oldChain} to ${newChain}`)
+  // Perform any updates or refreshes needed when the chain changes
+  contractStore.updateApiClient()
+}, { immediate: true })
 </script>
 
 <style scoped>

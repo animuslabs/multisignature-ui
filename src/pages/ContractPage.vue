@@ -47,16 +47,21 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref } from "vue"
+import { reactive, ref, watch } from "vue"
 import { createAndExecuteMultiSignProposal } from "src/lib/contracts"
 import WasmUploadComponent from "src/components/WasmUploadComponent.vue"
 import AbiUploadComponent from "src/components/AbiUploadComponent.vue"
 import { Types as TypesMultiSign } from "src/lib/eosio-msig-contract-telos-mainnet"
 import { Bytes, Name } from "@wharfkit/antelope"
+import { useApiStore } from "src/stores/apiStore"
+import { useContractStore } from "src/stores/contractStore"
 
 const contract = reactive({ actor: "", permission: "" })
 const wasmArray = ref("") // Holds the converted WASM file string
 const abiBytes = ref<Bytes | null>(null) // Holds the serialized ABI Bytes
+const apiStore = useApiStore()
+const contractStore = useContractStore()
+const chainName = ref(apiStore.activeChain)
 
 function onWasmConverted(convertedString:string) {
   wasmArray.value = convertedString
@@ -142,14 +147,22 @@ const createProposal = async() => {
     )
 
     // Attempt to create the proposal with the actions
-    const result = await createAndExecuteMultiSignProposal(reqSignAccsConverted, actionsForProposal)
+    const result = await createAndExecuteMultiSignProposal(chainName.value, reqSignAccsConverted, actionsForProposal)
     console.log("Proposal created:", result)
   } catch (error) {
     console.error("Error creating proposal:", error)
   }
 }
 
+// Watch for changes in chainName and react accordingly
+watch(chainName, (newChain, oldChain) => {
+  console.log(`Chain changed from ${oldChain} to ${newChain}`)
+  // Perform any updates or refreshes needed when the chain changes
+  contractStore.updateApiClient()
+}, { immediate: true })
+
 </script>
+
 <style>
 .full-width {
   width: 100%;

@@ -29,24 +29,24 @@ export const proposalsStore = defineStore("proposals", {
       this.proposalDetails = proposals as TypesMultiSign.proposal[]
       return proposals as TypesMultiSign.proposal[]
     },
-    async approveProposalAction(actionData:ActionProposalNameParams["approve"]):Promise<TransactResult | unknown> {
-      const data = await createProposalAction("approve", actionData)
+    async approveProposalAction(chainName:string, actionData:ActionProposalNameParams["approve"]):Promise<TransactResult | unknown> {
+      const data = await createProposalAction(chainName, "approve", actionData)
       return data
     },
-    async unapproveProposalAction(actionData:ActionProposalNameParams["unapprove"]):Promise<TransactResult | unknown> {
-      const data = await createProposalAction("unapprove", actionData)
+    async unapproveProposalAction(chainName:string, actionData:ActionProposalNameParams["unapprove"]):Promise<TransactResult | unknown> {
+      const data = await createProposalAction(chainName, "unapprove", actionData)
       return data
     },
-    async execProposalAction(actionData:ActionProposalNameParams["exec"]):Promise<TransactResult | unknown> {
-      const data = await createProposalAction("exec", actionData)
+    async execProposalAction(chainName:string, actionData:ActionProposalNameParams["exec"]):Promise<TransactResult | unknown> {
+      const data = await createProposalAction(chainName, "exec", actionData)
       return data
     },
-    async invalidateProposalAction(actionData:ActionProposalNameParams["invalidate"]):Promise<TransactResult | unknown> {
-      const data = await createProposalAction("invalidate", actionData)
+    async invalidateProposalAction(chainName:string, actionData:ActionProposalNameParams["invalidate"]):Promise<TransactResult | unknown> {
+      const data = await createProposalAction(chainName, "invalidate", actionData)
       return data
     },
-    async cancelProposalAction(actionData:ActionProposalNameParams["cancel"]):Promise<TransactResult | unknown> {
-      const data = await createProposalAction("cancel", actionData)
+    async cancelProposalAction(chainName:string, actionData:ActionProposalNameParams["cancel"]):Promise<TransactResult | unknown> {
+      const data = await createProposalAction(chainName, "cancel", actionData)
       return data
     },
     async getProposalByName(url:string, proposal:string):Promise<string> {

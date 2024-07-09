@@ -1,6 +1,7 @@
 import { Bytes, Name, ABI, Serializer } from "@wharfkit/antelope"
 import axios from "axios"
 import { ApiResponse } from "src/lib/types"
+import { getABI } from "src/lib/contracts"
 
 export async function bytesToJson<T>(bytes:Bytes):Promise<T> {
   try {
@@ -117,5 +118,40 @@ export const getProposalsDataHyperion = async(
   } catch (error) {
     console.error("Error fetching proposals data from Hyperion:", error)
     throw error // Re-throw the error to handle it further up in your application
+  }
+}
+
+export const deserializeActionData = async(action:any, abiAcc:string) => {
+  if (!action || !action.data || !action.name) {
+    console.error("Invalid or incomplete action data provided:", action)
+    throw new Error("Invalid or incomplete action data.")
+  }
+
+  console.log("Starting to fetch ABI for account:", abiAcc)
+  const abiResponse = await getABI(abiAcc)
+  console.log("ABI fetched:", abiResponse)
+
+  if (!abiResponse || !abiResponse.abi) {
+    throw new Error(`No ABI found for account: ${abiAcc}`)
+  }
+
+  const abi = ABI.from(abiResponse.abi)
+  if (!abi) {
+    throw new Error(`Failed to parse ABI for account: ${abiAcc}`)
+  }
+  console.log("action name:", action.name)
+  const data = new Uint8Array(Buffer.from("0000000000901c3d88130000004072f4801cb5d9", "hex"))
+  console.log("Decoding action data using ABI...")
+  try {
+    const decodedData = Serializer.decode({
+      object: data,
+      abi,
+      type: action.name
+    })
+    console.log("Decoded data:", decodedData)
+    return decodedData
+  } catch (error) {
+    console.error("Failed to decode action data:", error)
+    throw error
   }
 }

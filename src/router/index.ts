@@ -37,7 +37,7 @@ export default route(function(/* { store, ssrContext } */) {
   Router.beforeEach((to, from, next) => {
     const apiStore = useApiStore() // Pass the store instance if needed
     // Check if the route has a chain parameter; if not, default to 'Telos'
-    const chain = to.params.chain || "Telos"
+    const chain = to.params.chain || "telos"
     apiStore.setActiveChain(chain.toString())
     next()
   })

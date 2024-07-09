@@ -24,17 +24,17 @@ export const useApiStore = defineStore("apiStore", {
     chainUrls: {
       telos: chainEndpoints[1]?.endpoints[0]?.url || "",
       eos: chainEndpoints[0]?.endpoints[0]?.url || "",
-      telostestnet: chainEndpoints[2]?.endpoints[0]?.url || "",
-      wax: chainEndpoints[3]?.endpoints[0]?.url || ""
+      telostestnet: chainEndpoints[2]?.endpoints[0]?.url || ""
+      // wax: chainEndpoints[3]?.endpoints[0]?.url || ""
     } as Record<string, string>,
     hyperionUrls: {
       telos: hyperionEndpoints[0]?.endpoints[0]?.url || "",
       eos: hyperionEndpoints[1]?.endpoints[0]?.url || "",
-      telostestnet: hyperionEndpoints[2]?.endpoints[0]?.url || "",
-      wax: hyperionEndpoints[3]?.endpoints[0]?.url || ""
+      telostestnet: hyperionEndpoints[2]?.endpoints[0]?.url || ""
+      // wax: hyperionEndpoints[3]?.endpoints[0]?.url || ""
     } as Record<string, string>,
     clientAPI: new APIClient({ url: chainEndpoints[1]?.endpoints[0]?.url || "" }),
-    activeChain: "Telos",
+    activeChain: "telos",
     activeUrl: chainEndpoints[1]?.endpoints[0]?.url || "",
     activeHyperionUrl: hyperionEndpoints[0]?.endpoints[0]?.url || ""
   }),

@@ -4,33 +4,34 @@
       <q-toolbar>
         <q-toolbar-title>
           <q-btn
-            @click="$router.push('/')"
+            @click="navigateToHome"
             flat
           >
             <q-avatar><img src="/Antelope-Logo.png"></q-avatar>
           </q-btn>
         </q-toolbar-title>
         <div class="q-gutter-md">
+          <!-- Updated Navigation Buttons to Include Chain Context -->
           <q-btn
-            @click="$router.push('/')"
+            @click="navigate('/m-sign')"
             flat
           >
             M-Sign
           </q-btn>
           <q-btn
-            @click="$router.push('/accmap')"
+            @click="navigate('/accmap')"
             flat
           >
             Acc Map
           </q-btn>
           <q-btn
-            @click="$router.push('/contract')"
+            @click="navigate('/contract')"
             flat
           >
             Contract
           </q-btn>
           <q-btn
-            @click="$router.push('/proposals')"
+            @click="navigate('/proposals')"
             flat
           >
             Proposals
@@ -73,9 +74,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted } from "vue"
+import { defineComponent, onMounted, computed, ref, watch } from "vue"
 import { useSessionStore } from "src/stores/sessionStore"
+import { useRoute, useRouter } from "vue-router"
 import LoginMenu from "src/components/LoginMenu.vue"
+
 export default defineComponent({
   name: "MainLayout",
   components: {
@@ -83,15 +86,47 @@ export default defineComponent({
   },
   setup() {
     const sessionStore = useSessionStore()
-    onMounted(async() => {
-      await sessionStore.renew()
+    const router = useRouter()
+    const route = useRoute()
+    const currentChain = ref(route.params.chain || "eos") // Default to 'eos' or logic to determine default
+
+    // Watch for changes in route params and update currentChain accordingly
+    watch(() => route.params.chain, (newChain) => {
+      currentChain.value = newChain || "eos"
     })
+
+    async function navigate(path:string) {
+      // Append the current chain to the path dynamically
+      const fullPath = `${path}/${currentChain.value}`
+      try {
+        await router.push(fullPath)
+      } catch (error) {
+        console.error("Failed to navigate:", error)
+      }
+    }
+
+    async function navigateToHome() {
+      // Navigate to the home (start page) of the current chain
+      try {
+        await router.push(`/m-sign/${currentChain.value}`)
+      } catch (error) {
+        console.error("Failed to navigate to home:", error)
+      }
+    }
+
+    onMounted(async() => {
+      // Potentially renew session based on the current chain
+      await sessionStore.renew(currentChain.value.toString())
+    })
+
     return {
-      LoginMenu
+      navigate,
+      navigateToHome
     }
   }
 })
 </script>
+
 <style>
 .border-bottom {
   border-bottom: 1px solid var(--secondary);

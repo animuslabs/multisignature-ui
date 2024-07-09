@@ -30,7 +30,7 @@ const contractStore = useContractStore()
 contractStore.updateApiClient()
 
 // gets the ABI for a given account
-const getABI = async(accountName:string) => {
+export const getABI = async(accountName:string) => {
   const api = contractStore.blockchainManager.getClientAPI()
   if (!api) {
     throw new Error("API client is not initialized")
@@ -80,6 +80,7 @@ export async function fetchDataFromMsigTable<T extends TableNamesMsig>(tableName
 }
 
 export async function createAction<A extends ActionNames>(
+  chainName:string,
   actionName:A,
   action_data:ActionNameParams[A]
 ) {
@@ -87,13 +88,13 @@ export async function createAction<A extends ActionNames>(
   let isItMultiSignMode = sessionStore.multiSignState
   try {
     console.log(`Creating action: ${String(actionName)} with data:`, action_data)
-    const session = sessionStore.session
+    const session = sessionStore.getSession(chainName)
     if (!session) throw new Error("Session not loaded")
     const boid = contractStore.blockchainManager.boid
     const action = boid.action(actionName, action_data)
     console.log("Action created:", action)
 
-    if (!sessionStore.session) {
+    if (!sessionStore.sessions) {
       console.error("Session is not defined")
       throw new Error("Session is not defined")
     }
@@ -101,7 +102,7 @@ export async function createAction<A extends ActionNames>(
     if (isItMultiSignMode) {
       // If multi-sign mode is enabled, create and execute a multi-sign proposal
       console.log("Executing action in multi-sign mode...")
-      result = await createAndExecuteMultiSignProposal(reqSignAccsConverted, [action])
+      result = await createAndExecuteMultiSignProposal(chainName, reqSignAccsConverted, [action])
     } else {
       // Otherwise, execute a regular transaction
       console.log("Transacting action...")
@@ -119,34 +120,60 @@ export async function createAction<A extends ActionNames>(
 
 // only used not in multi sign mode
 export async function createProposalAction<A extends ActionProposalNames>(
+  chainName:string,
   actionName:A,
   action_data:ActionProposalNameParams[A]
 ) {
   console.log("createAction called with", { actionName, action_data })
   try {
     console.log(`Creating action: ${String(actionName)} with data:`, action_data)
-    const session = sessionStore.session
+
+    const session = sessionStore.getSession(chainName)
     if (!session) throw new Error("Session not loaded")
+
     const eosioMsig = contractStore.blockchainManager.eosioMsig
     const action = eosioMsig.action(actionName, action_data)
     console.log("Action created:", action)
 
-    if (!sessionStore.session) {
+    if (!sessionStore.getSession(chainName)) {
       console.error("Session is not defined")
       throw new Error("Session is not defined")
     }
-    let result
+
     console.log("Transacting action...")
-    result = await session.transact({ action })
+    const result = await session.transact({ action })
+
+    // Check if result contains the expected data fields
+    if (!result) {
+      throw new Error("Decoding error: Nothing to decode, you must set one of data, json, object")
+    }
+
     console.log("Transaction result:", result)
     return { result }
-  } catch (error) {
-    console.error("Error in createAction:", toObject(error))
-    throw error
+  } catch (error:any) {
+    console.error("Error in createProposalAction:", error)
+
+    // Add detailed logging for better error diagnosis
+    if (error instanceof Error) {
+      console.error("Error message:", error.message)
+      console.error("Stack trace:", error.stack)
+    }
+
+    // Check if error response contains additional data
+    if (error.json) {
+      console.error("Error response JSON:", error.json)
+    } else if (error.data) {
+      console.error("Error response data:", error.data)
+    } else {
+      console.error("Error object:", toObject(error))
+    }
+
+    throw error // Re-throw the error after logging details
   }
 }
 
 export async function createAndExecuteMultiSignProposal(
+  chainName:string,
   reqSignAccs:TypesMultiSign.permission_level[],
   actions:TypesMultiSign.action[]
 ):Promise<MsigResult | undefined> {
@@ -177,10 +204,10 @@ export async function createAndExecuteMultiSignProposal(
     }))
 
     // Prepare the proposal data
-    const session = sessionStore.session
+    const session = sessionStore.getSession(chainName)
     if (!session) throw new Error("Session not loaded")
 
-    const proposerAcc = Name.from(sessionStore.username)
+    const proposerAcc = Name.from(sessionStore.username(chainName))
     const propName = generateRandomName()
     const expiration = TimePointSec.from(expDate)
     const proposalData = TypesMultiSign.propose.from({

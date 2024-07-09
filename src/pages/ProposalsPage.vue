@@ -115,7 +115,7 @@ import { ref, Ref, onMounted, watch, computed } from "vue"
 import { useRoute } from "vue-router"
 import { proposalsStore } from "src/stores/proposalsStore"
 import { Types as TypesMultiSign, ActionNameParams as ActionProposalNameParams } from "src/lib/eosio-msig-contract-telos-mainnet"
-import { formatTime } from "src/lib/reuseFunctions"
+import { formatTime, deserializeActionData } from "src/lib/reuseFunctions"
 import { useSessionStore } from "src/stores/sessionStore"
 import { useContractStore } from "src/stores/contractStore"
 import { useApiStore } from "src/stores/apiStore"
@@ -149,18 +149,20 @@ type ProposalDetails = {
 
 const store = proposalsStore()
 const proposalAcc = ref("")
-
+const apiStore = useApiStore()
 const route = useRoute()
 const sessionStore = useSessionStore()
 const contractStore = useContractStore()
-const chain = computed(() => route.params.chain || sessionStore.whatChain || "Login!")
+const chain = computed(() => route.params.chain || apiStore.activeChain || "Login!")
 const proposalName = computed(() => route.params.proposalName?.toString() || "")
-const apiStore = useApiStore()
+
 const activeChain = computed(() => apiStore.activeChain)
 const activeHyperionUrl = computed(() => apiStore.activeHyperionUrl.toString())
 
 const isLoading = ref(false)
 const error = ref("")
+const endpoint = computed(() => apiStore.activeUrl || "N/A")
+const user = computed(() => sessionStore.username(activeChain.value) || "Login!")
 
 async function fetchProposerName(proposalName:string) {
   console.log("Logging in with URL:", activeHyperionUrl.value)
@@ -187,11 +189,6 @@ async function fetchProposerName(proposalName:string) {
     isLoading.value = false
   }
 }
-
-
-const endpoint = computed(() => apiStore.activeUrl || "N/A")
-const user = computed(() => sessionStore.username || "Login!")
-
 
 const proposalsData:Ref<TypesMultiSign.approvals_info[]> = ref([])
 const transformedProposalsData:Ref<TransformedProposal[]> = ref([])
@@ -236,23 +233,6 @@ const searchProposals = async() => {
     console.error("Error in searchProposals:", error)
   }
 }
-
-// Watch for changes in the active chain to fetch data
-watch(activeChain, (newChain, oldChain) => {
-  if (newChain !== oldChain) {
-    // fetchProposals() // Define this method to fetch data based on the new chain
-  }
-}, { immediate: true })
-
-// Watch the proposalName and fetch proposer's account when it changes
-watch(proposalName, async(newProposalName) => {
-  if (newProposalName) {
-    await fetchProposerName(newProposalName)
-  }
-  await searchProposals().then(() => {
-    handleProvidedProposalParameter()
-  })
-}, { immediate: true })
 
 // when router parameter is provided, get proposal details
 const handleProvidedProposalParameter = () => {
@@ -310,18 +290,17 @@ const transformProposalsData = (data:TypesMultiSign.approvals_info[]):Transforme
 }
 
 const executeAction = async(row:TransformedProposal) => {
-  const user = sessionStore.username
-  console.log("User:", user)
+  console.log("User:", user.value)
 
   const executeData:ActionProposalNameParams["exec"] = {
     proposer: proposalAcc.value,
     proposal_name: row.proposal_name,
-    executer: user
+    executer: user.value
   }
 
   try {
     console.log("Execute action data:", executeData)
-    await store.execProposalAction(executeData)
+    await store.execProposalAction(activeChain.value, executeData)
     setTimeout(() => searchProposals(), 1000)
     await searchProposals()
     console.log("Execute action executed for:", row)
@@ -331,18 +310,17 @@ const executeAction = async(row:TransformedProposal) => {
 }
 
 const cancelAction = async(row:TransformedProposal) => {
-  const user = sessionStore.username
-  console.log("User:", user)
+  console.log("User:", user.value)
 
   const cancelData:ActionProposalNameParams["cancel"] = {
     proposer: proposalAcc.value,
     proposal_name: row.proposal_name,
-    canceler: user
+    canceler: user.value
   }
 
   try {
     console.log("Cancel action data:", cancelData)
-    await store.cancelProposalAction(cancelData)
+    await store.cancelProposalAction(activeChain.value, cancelData)
     setTimeout(() => searchProposals(), 1000)
     await searchProposals()
     console.log("Cancel action executed for:", row)
@@ -352,8 +330,7 @@ const cancelAction = async(row:TransformedProposal) => {
 }
 
 const unapproveAction = async(row:TransformedProposal) => {
-  const user = sessionStore.username
-  const approvalToUnsign = row.provided_approvals.find(approval => approval.level.actor === user)
+  const approvalToUnsign = row.provided_approvals.find(approval => (approval.level.actor).toString() === user.value.toString())
   console.log("Data:", proposalAcc.value, row.proposal_name, approvalToUnsign?.level.actor, approvalToUnsign?.level.permission)
   if (approvalToUnsign) {
     const unsignData:ActionProposalNameParams["unapprove"] = {
@@ -366,7 +343,7 @@ const unapproveAction = async(row:TransformedProposal) => {
       })
     }
 
-    await store.unapproveProposalAction(unsignData)
+    await store.unapproveProposalAction(activeChain.value, unsignData)
     setTimeout(() => searchProposals(), 1000)
     await searchProposals()
     console.log("Unsign action for:", row)
@@ -376,9 +353,8 @@ const unapproveAction = async(row:TransformedProposal) => {
 }
 
 const approveAction = async(row:TransformedProposal) => {
-  const user = sessionStore.username
-  console.log("User:", user)
-  const approvalToSign = row.requested_approvals.find(approval => approval.level.actor === user)
+  console.log("User:", user.value)
+  const approvalToSign = row.requested_approvals.find(approval => (approval.level.actor).toString() === user.value.toString())
   console.log("Data to approve:", proposalAcc.value, row.proposal_name, approvalToSign?.level.actor, approvalToSign?.level.permission)
 
   if (approvalToSign) {
@@ -394,12 +370,23 @@ const approveAction = async(row:TransformedProposal) => {
 
     try {
       console.log("Approve action data:", toObject(approveData))
-      await store.approveProposalAction(approveData)
+      await store.approveProposalAction(activeChain.value, approveData)
       console.log("Approve action executed for:", row)
       setTimeout(() => searchProposals(), 1000)
       await searchProposals()
-    } catch (error) {
+    } catch (error:any) {
       console.error("Error in approveAction:", error)
+      // Add detailed logging for better error diagnosis
+      if (error instanceof Error) {
+        console.error("Error message:", error.message)
+        console.error("Stack trace:", error.stack)
+      }
+
+      // Log the problematic row data
+      console.log("Problematic row data:", row)
+
+      // Display a user-friendly error message
+      error.value = "Failed to approve the proposal. Please try again later."
     }
   } else {
     console.log("No approval found to sign for:", row)
@@ -420,7 +407,32 @@ const handleRowClick = (evt:Event, row:any, index:number) => {
   }
 }
 
-watch([() => sessionStore.whatChain, () => sessionStore.chainUrl], () => {
+// Watch for changes in the active chain to fetch data
+watch(activeChain, (newChain, oldChain) => {
+  if (newChain !== oldChain) {
+    // fetchProposals() // Define this method to fetch data based on the new chain
+  }
+}, { immediate: true })
+
+// Watch for changes in the active chain to fetch data
+watch(chain, async(newChain, oldChain) => {
+  if (newChain !== oldChain) {
+    await sessionStore.renew(newChain.toString())
+    await searchProposals()
+  }
+}, { immediate: true })
+
+// Watch the proposalName and fetch proposer's account when it changes
+watch(proposalName, async(newProposalName) => {
+  if (newProposalName) {
+    await fetchProposerName(newProposalName)
+    await searchProposals()
+    handleProvidedProposalParameter()
+  } else {
+    await searchProposals()
+  }
+}, { immediate: true })
+watch([() => apiStore.activeChain, () => apiStore.activeUrl], () => {
   contractStore.updateApiClient()
 })
 
