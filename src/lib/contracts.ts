@@ -1,9 +1,7 @@
-import { ContractKit } from "@wharfkit/contract"
-import { APIClient, Name } from "@wharfkit/antelope"
+import { Name } from "@wharfkit/antelope"
 import { useSessionStore } from "src/stores/sessionStore"
-import { ActionNameParams, Contract as BoidContract, TableNames as TableNamesBoid, RowType as RowTypeBoid, ActionNames, abi as boidABI } from "src/lib/boid-contract-structure"
+import { ActionNameParams, TableNames as TableNamesBoid, RowType as RowTypeBoid, ActionNames } from "src/lib/boid-contract-structure"
 import {
-  Contract as EosioMsigContract,
   Types as TypesMultiSign,
   RowType as RowTypeMsig,
   TableNames as TableNamesMsig,

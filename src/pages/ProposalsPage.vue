@@ -111,6 +111,7 @@
 
 
 <script lang="ts" setup>
+import { Notify } from "quasar"
 import { ref, Ref, onMounted, watch, computed } from "vue"
 import { useRoute } from "vue-router"
 import { proposalsStore } from "src/stores/proposalsStore"
@@ -349,6 +350,11 @@ const unapproveAction = async(row:TransformedProposal) => {
     console.log("Unsign action for:", row)
   } else {
     console.log("No approval found to unsign for:", row)
+    Notify.create({
+      type: "negative",
+      message: "No approval found to unsign for the selected proposal.",
+      position: "bottom"
+    })
   }
 }
 
@@ -390,6 +396,11 @@ const approveAction = async(row:TransformedProposal) => {
     }
   } else {
     console.log("No approval found to sign for:", row)
+    Notify.create({
+      type: "negative",
+      message: "No approval found to sign for the selected proposal.",
+      position: "bottom"
+    })
   }
 }
 
