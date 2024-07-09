@@ -7,7 +7,7 @@
         </div>
         <div class="row q-ma-md">
           <q-input dense class="top-input" outlined v-model="proposalAcc" label="Proposer's Account" />
-          <q-btn dense color="primary" class="top-btn q-ml-md" label="Search" @click="searchProposals" />
+          <q-btn dense color="primary" class="top-btn q-ml-md" label="Search" @click="handleSearch" />
         </div>
         <q-table
           :rows="transformedProposalsData"
@@ -230,8 +230,26 @@ const searchProposals = async() => {
 
     console.log("Transformed details:", transformedDetailsData)
     proposalsTransactionDetails.value = transformedDetailsData // Store all transformed details in the reactive variable
+
+    return proposalsData.value.length > 0
   } catch (error) {
     console.error("Error in searchProposals:", error)
+    Notify.create({
+      type: "negative",
+      message: "Failed to fetch proposals. Please try again later.",
+      position: "bottom"
+    })
+  }
+}
+
+const handleSearch = async() => {
+  const foundProposals = await searchProposals()
+  if (!foundProposals) {
+    Notify.create({
+      type: "warning",
+      message: "No proposals found for the given account.",
+      position: "bottom"
+    })
   }
 }
 
