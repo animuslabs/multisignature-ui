@@ -20,7 +20,6 @@ export const chainEndpoints:ChainEndpoints[] = [
   {
     chain: "eos",
     endpoints: [
-      { name: "Boid BP", url: "https://eos.api.boid.animus.is" },
       { name: "EOSphere", url: "https://eos.eosphere.io" },
       { name: "EOS Nation", url: "https://eos.api.eosnation.io" },
       { name: "EOS Amsterdam", url: "https://mainnet.eosamsterdam.net" },
