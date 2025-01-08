@@ -60,6 +60,17 @@ const routes:RouteRecordRaw[] = [
     ]
   },
   {
+    path: "/create-acc/:chain?",
+    component: () => import("layouts/MainLayout.vue"),
+    children: [
+      {
+        path: "",
+        component: () => import("pages/CreateAccPage.vue"),
+        props: true
+      }
+    ]
+  },
+  {
     path: "/:catchAll(.*)*",
     component: () => import("pages/ErrorNotFound.vue")
   }

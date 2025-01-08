@@ -186,7 +186,7 @@ function proposalDialogText(name:string) {
     case "telostestnet":
       return `<a style="font-size:25px;" href="https://explorer-test.telos.net/proposal/${name}">Proposal Link</a>`
     case "eos":
-      return `<a style="font-size:25px;" href="https://bloks.io/msig/${sessionStore.username(apiStore.activeChain)}/${name}">Proposal Link</a>`
+      return `<a style="font-size:25px;" href="https://cofee.bloks.io/msig/${sessionStore.username(apiStore.activeChain)}/${name}">Proposal Link</a>`
     default:
       return ""
   }

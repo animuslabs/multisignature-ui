@@ -36,6 +36,12 @@
           >
             Proposals
           </q-btn>
+          <q-btn
+            @click="navigate('/create-acc')"
+            flat
+          >
+            Create Acc
+          </q-btn>
           <!-- Dropdown Button for LoginMenu -->
           <q-btn-dropdown icon="person" color="primary">
             <LoginMenu />
