@@ -113,7 +113,7 @@ export const networks:NetworkConfig[] = [
   },
   {
     name: "impact",
-    chainId: "227039f675bcecc757b3f53282911664de1bc85ed889fe7b193d1bdec3828d34",
+    chainId: "7150474948f3d27959b9bd0d4f78d2e4008c5365d10d7aca322f1d1f52e02cf4",
     nodeUrl: "", // value is managed by the apiStore
     logo: "/impact.png"
   }
