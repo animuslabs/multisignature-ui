@@ -44,13 +44,13 @@ export const chainEndpoints:ChainEndpoints[] = [
       { name: "EOS Nation", url: "https://telostest.api.eosnation.io" },
       { name: "Teleology One", url: "https://testnet.telos.teleology.one" }
     ]
+  },
+  {
+    chain: "impact",
+    endpoints: [
+      { name: "Impact", url: "https://api.np.animus.is" }
+    ]
   }
-  // {
-  //   chain: "wax",
-  //   endpoints: [
-  //     { name: "AlohaWAX", url: "https://api.wax.alohaeos.com" }
-  //   ]
-  // }
 ]
 
 
@@ -110,13 +110,13 @@ export const networks:NetworkConfig[] = [
     chainId: "aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906",
     nodeUrl: "", // value is managed by the apiStore
     logo: "https://cofee.bloks.io/img/chains/eos.png"
+  },
+  {
+    name: "impact",
+    chainId: "227039f675bcecc757b3f53282911664de1bc85ed889fe7b193d1bdec3828d34",
+    nodeUrl: "", // value is managed by the apiStore
+    logo: "/impact.png"
   }
-  // {
-  //   name: "wax",
-  //   chainId: "1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4",
-  //   nodeUrl: "", // value is managed by the apiStore
-  //   logo: "https://wax.bloks.io/img/chains/wax.png"
-  // }
 ]
 
 export function getNetworkByChainId(chainId:string):NetworkConfig {

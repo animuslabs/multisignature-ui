@@ -82,7 +82,8 @@ export default defineComponent({
     const chainOptions = [
       { label: "EOS", value: "eos" },
       { label: "Telos", value: "telos" },
-      { label: "Telos Testnet", value: "telostestnet" }
+      { label: "Telos Testnet", value: "telostestnet" },
+      { label: "Impact", value: "impact" }
     ]
 
     const switchChain = async(chain:{ label:string, value:string }) => {

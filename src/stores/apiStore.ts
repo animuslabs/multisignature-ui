@@ -24,14 +24,14 @@ export const useApiStore = defineStore("apiStore", {
     chainUrls: {
       telos: chainEndpoints[1]?.endpoints[0]?.url || "",
       eos: chainEndpoints[0]?.endpoints[0]?.url || "",
-      telostestnet: chainEndpoints[2]?.endpoints[0]?.url || ""
-      // wax: chainEndpoints[3]?.endpoints[0]?.url || ""
+      telostestnet: chainEndpoints[2]?.endpoints[0]?.url || "",
+      impact: chainEndpoints[3]?.endpoints[0]?.url || "" // this is supposed to be impact chain
     } as Record<string, string>,
     hyperionUrls: {
       telos: hyperionEndpoints[0]?.endpoints[0]?.url || "",
       eos: hyperionEndpoints[1]?.endpoints[0]?.url || "",
       telostestnet: hyperionEndpoints[2]?.endpoints[0]?.url || ""
-      // wax: hyperionEndpoints[3]?.endpoints[0]?.url || ""
+      // impact: hyperionEndpoints[3]?.endpoints[0]?.url || "" // impact chain is not supported by hyperion yet
     } as Record<string, string>,
     clientAPI: new APIClient({ url: chainEndpoints[1]?.endpoints[0]?.url || "" }),
     activeChain: "telos",
@@ -103,16 +103,18 @@ export const useApiStore = defineStore("apiStore", {
       this.responses[endpoint] = data
     },
     setActiveChain(chainName:string) {
-      const newUrl = this.chainUrls[chainName] // Access URL directly
-      const newHyperionUrl = this.hyperionUrls[chainName]
-      if (newUrl && newHyperionUrl) {
+      const newUrl = this.chainUrls[chainName]
+      if (newUrl) {
         this.activeChain = chainName
         this.activeUrl = newUrl
-        this.activeHyperionUrl = newHyperionUrl
+        // Only update hyperion URL if it exists
+        const newHyperionUrl = this.hyperionUrls[chainName]
+        if (newHyperionUrl) {
+          this.activeHyperionUrl = newHyperionUrl
+        }
         console.log(`Active chain set to ${chainName} with URL ${this.activeUrl}`)
       } else {
         console.error(`Attempted to set invalid chain name or URL not found: ${chainName}`)
-        // Optionally set to a default URL or handle error more robustly
       }
     }
   }
