@@ -29,7 +29,6 @@ export const chainEndpoints:ChainEndpoints[] = [
   {
     chain: "telos",
     endpoints: [
-      { name: "Boid BP", url: "https://telos.api.boid.animus.is" },
       { name: "EOSphere", url: "https://telos.eosphere.io" },
       { name: "EOS Nation", url: "https://telos.api.eosnation.io" },
       { name: "Caleos", url: "https://telos.caleos.io" },
@@ -39,18 +38,17 @@ export const chainEndpoints:ChainEndpoints[] = [
   {
     chain: "telostestnet",
     endpoints: [
-      { name: "Boid BP", url: "https://telos.testnet.boid.animus.is" },
       { name: "EOSphere", url: "https://telos-testnet.eosphere.io" },
       { name: "EOS Nation", url: "https://telostest.api.eosnation.io" },
       { name: "Teleology One", url: "https://testnet.telos.teleology.one" }
     ]
-  },
-  {
-    chain: "impact",
-    endpoints: [
-      { name: "Impact", url: "https://api.np.animus.is" }
-    ]
   }
+  // {
+  //   chain: "impact",
+  //   endpoints: [
+  //     { name: "Impact", url: "https://api.np.animus.is" }
+  //   ]
+  // }
 ]
 
 
@@ -59,7 +57,6 @@ export const hyperionEndpoints:ChainEndpoints[] = [
     chain: "telos",
     endpoints: [
       { name: "Telos Madrid", url: "https://hyperion.telosmadrid.io" },
-      { name: "Boid BP", url: "https://hyperion.telos.animus.is" },
       { name: "Telos Unlimited", url: "https://hyperion.telosunlimited.io" },
       { name: "Telos Arabia", url: "https://api.telosarabia.net" },
       { name: "EOSUSA", url: "https://telos.eosusa.io" },
@@ -76,7 +73,6 @@ export const hyperionEndpoints:ChainEndpoints[] = [
   {
     chain: "telostestnet",
     endpoints: [
-      { name: "Boid BP", url: "https://hyperion.telos-testnet.animus.is" },
       { name: "Telos Teleology", url: "https://telos.teleology.one:343" }
     ]
   }
